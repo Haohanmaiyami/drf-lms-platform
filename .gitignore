@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Environments
+.env
+.env.*
+
+# Poetry
+poetry.lock
+
+# PyCharm
+.idea/
+
+# Media/uploads
+/media/
+uploads/
+
+
+# Coverage/Test/Reports
+htmlcov/
+*.cover
+*.pyc
+
+# VSCode
+.vscode/
