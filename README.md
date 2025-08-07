@@ -56,5 +56,22 @@ admin@mail.ru password admin - super user
   "last_name": "Юзер",
   "phone": "1234567890"
 
-"refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NDY0OTgwNywiaWF0IjoxNzU0NTYzNDA3LCJqdGkiOiIwZTZmZjdiMDJkNDE0OTJkODJkZjlmYjlkMTg4OWZhMSIsInVzZXJfaWQiOiIyIn0.9s5YLIAtYpxqYVtm1UGifXt6ylyaCnn28P1bsTex-lU",
-    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NTYzNzA3LCJpYXQiOjE3NTQ1NjM0MDcsImp0aSI6IjJhNDcxYjg2YTk1YTQ5YzI5OTE4NDQ4YmVmZjA2YTM1IiwidXNlcl9pZCI6IjIifQ.fua9xOi5FdsZgvg462Zgd4TDOQDM-UwpbkiDBA1vTIA"
+#  Домашняя работа по сериализаторам
+
+## Что было реализовано
+
+- **Поле `lessons_count` в CourseSerializer**  
+  Добавлено через `SerializerMethodField`, возвращает количество уроков, связанных с курсом.
+
+- **Вложенный вывод уроков (`lessons`) в CourseSerializer**  
+  Используется `LessonSerializer` для отображения всех уроков курса в одном ответе вместе с `lessons_count`.
+
+- **Модель `Payment` в приложении `users`**  
+  Поля: пользователь, дата оплаты, оплаченный курс или урок, сумма, метод оплаты (`cash` / `transfer`).  
+  Реализованы связи с соответствующими моделями.
+
+- **Тестовые данные для платежей**  
+  Добавлены фикстуры `users/fixtures/payments.json` с примерами оплат курсов и уроков.
+
+- **Фильтрация и сортировка для `/api/payments/`**  
+  Поддержка фильтров по курсу, уроку, способу оплаты и сортировки по дате оплаты (возрастание/убывание).

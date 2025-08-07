@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import User
+from .models import User, Payment
 
 
 @admin.register(User)
@@ -32,3 +32,9 @@ class UserAdmin(BaseUserAdmin):
 
     # Используем email как уникальный логин
     filter_horizontal = ('groups', 'user_permissions',)
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ("user", "payment_date", "paid_course", "paid_lesson", "amount", "method")
+    list_filter = ("method", "payment_date")
