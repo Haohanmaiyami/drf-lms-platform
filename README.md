@@ -75,3 +75,23 @@ admin@mail.ru password admin - super user
 
 - **Фильтрация и сортировка для `/api/payments/`**  
   Поддержка фильтров по курсу, уроку, способу оплаты и сортировки по дате оплаты (возрастание/убывание).
+
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NTY2NzkyMywiaWF0IjoxNzU1MDYzMTIzLCJqdGkiOiI1MDA0MDVkNWFjNzc0NjJjYTUzMjk2MTgxNmZhZDMyZCIsInVzZXJfaWQiOiIxIn0.MpoLrmDuTy8NMhf2hzHYLJWlHQ_jY6xDBH8A_Y4qiV8",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1MDY2NzIzLCJpYXQiOjE3NTUwNjMxMjMsImp0aSI6ImY5ZGY4NzhkNTZkMTQyZjhiNjUxZDNiMmRhMjgzMjg5IiwidXNlcl9pZCI6IjEifQ.-ixxyy--pH8BLmiQiyiDtkCfeaIFEjLETxjywoPSwgc"
+}
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NTY3MTEzMSwiaWF0IjoxNzU1MDY2MzMxLCJqdGkiOiIxMGQ5YWYwNTFhMjg0Y2I0YmQ5NjY5MjI1YzM4OGFjNCIsInVzZXJfaWQiOiIxIn0.WyAUNAm2H2HOzyiKxYLD2kJc5o0O6dTMksaJUyMNVX8",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1MDY5OTMxLCJpYXQiOjE3NTUwNjYzMzEsImp0aSI6IjMyZWI4OTQwY2I0ZTRiZDRhNGVhYjY0YjJhYWM1MmM1IiwidXNlcl9pZCI6IjEifQ.ls0zcrQ9ZqwD8dCju2ANyV8a5uoAcAD1MQbwdQwUkhQ"
+}
+
+COURSE_ES 1  испанский фонетика урок 1 грамматика урок 2
+COURSE_ZH 2 фонетика тоны пиньинь 3
+
+1990$ за весь курс испанский кэш 6 37 айди 1
+750$ за урок испанский фонетика трансфер 6 40 айди 2 изменил на 2190 изменил на 1 доллар
+
+
+
