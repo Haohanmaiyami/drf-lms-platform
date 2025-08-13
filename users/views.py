@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Payment
@@ -22,6 +22,7 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
 
 
 class PaymentViewSet(ModelViewSet):
