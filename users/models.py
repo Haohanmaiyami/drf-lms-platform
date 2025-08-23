@@ -71,13 +71,62 @@ class Payment(models.Model):
     class Method(models.TextChoices):
         CASH = "cash", "Наличные"
         TRANSFER = "transfer", "Перевод на счёт"
+        STRIPE = "stripe", "Stripe"
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="payments")
-    payment_date = models.DateTimeField(auto_now_add=True)
-    paid_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name="payments")
-    paid_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True, related_name="payments")
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    method = models.CharField(max_length=10, choices=Method.choices)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payments",
+        verbose_name="Пользователь",
+        help_text="Укажите пользователя",
+    )
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата оплаты")
+    paid_course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments",
+        verbose_name="Оплаченный курс",
+        help_text="Выберите курс",
+    )
+    paid_lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments",
+        verbose_name="Оплаченный урок",
+        help_text="Выберите урок",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Сумма оплаты",
+        help_text="Укажите сумму в долларах (например 99.99)",
+    )
+    method = models.CharField(
+        max_length=10, choices=Method.choices, verbose_name="Метод оплаты"
+    )
+
+    # Stripe-поля
+    stripe_session_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="ID сессии",
+        help_text="ID сессии Stripe",
+    )
+    stripe_checkout_url = models.URLField(
+        max_length=400,
+        blank=True,
+        null=True,
+        verbose_name="Ссылка на оплату",
+        help_text="Ссылка для перехода на Stripe Checkout",
+    )
+
+    class Meta:
+        verbose_name = "Платёж"
 
     def __str__(self):
         target = self.paid_course or self.paid_lesson

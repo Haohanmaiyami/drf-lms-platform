@@ -5,34 +5,39 @@ from users.models import Payment
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ("id", "username", "email")
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name', 'phone')
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        fields = ("email", "password", "first_name", "last_name", "phone")
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
 
+
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = "__all__"
-        read_only_fields = ("user", "payment_date")
+        read_only_fields = ("user", "payment_date", "stripe_session_id", "stripe_checkout_url",)
 
     def validate(self, attrs):
         course = attrs.get("paid_course")
         lesson = attrs.get("paid_lesson")
         if not course and not lesson:
-            raise serializers.ValidationError("Выберите либо оплаченный курс, либо урок.")
+            raise serializers.ValidationError(
+                "Укажи курс или урок для оплаты."
+            )
         if course and lesson:
-            raise serializers.ValidationError("Нельзя указывать и курс, и урок одновременно.")
+            raise serializers.ValidationError(
+                "Нельзя указывать и курс, и урок одновременно."
+            )
         return attrs

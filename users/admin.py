@@ -7,34 +7,75 @@ from .models import User, Payment
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     # Какие поля отображаются в списке пользователей
-    list_display = ('email', 'first_name', 'last_name', 'phone', 'is_staff', 'is_active')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'city')
-    search_fields = ('email', 'first_name', 'last_name', 'phone')
-    ordering = ('email',)
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "phone",
+        "is_staff",
+        "is_active",
+    )
+    list_filter = ("is_staff", "is_superuser", "is_active", "city")
+    search_fields = ("email", "first_name", "last_name", "phone")
+    ordering = ("email",)
 
     # Поле, используемое вместо username
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'city', 'avatar')}),
-        (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-        }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+        (None, {"fields": ("email", "password")}),
+        (
+            _("Personal info"),
+            {"fields": ("first_name", "last_name", "phone", "city", "avatar")},
+        ),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                ),
+            },
+        ),
+        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
 
     # При создании нового пользователя
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name', 'phone', 'city', 'avatar'),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "password1",
+                    "password2",
+                    "first_name",
+                    "last_name",
+                    "phone",
+                    "city",
+                    "avatar",
+                ),
+            },
+        ),
     )
 
     # Используем email как уникальный логин
-    filter_horizontal = ('groups', 'user_permissions',)
+    filter_horizontal = (
+        "groups",
+        "user_permissions",
+    )
 
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ("user", "payment_date", "paid_course", "paid_lesson", "amount", "method")
+    list_display = (
+        "user",
+        "payment_date",
+        "paid_course",
+        "paid_lesson",
+        "amount",
+        "method",
+    )
     list_filter = ("method", "payment_date")

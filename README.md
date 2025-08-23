@@ -89,6 +89,30 @@ admin@mail.ru password admin - super user
 - Владение объектами (курсы и уроки)
 В моделях Course и Lesson добавлен owner (FK на пользователя). В perform_create() — автопривязка owner=self.request.user. В get_queryset() — фильтр «только свои» для немодераторов; объектный доступ через IsOwner.
 
+# Домашняя работа: Валидаторы, пагинация, тесты
+
+**Валидация**
+
+* Задание 1: реализован валидатор ссылок (только youtube.com / youtu.be)
+courses/validators.py → validate_youtube_url + подключён к LessonSerializer.video
+Некорректные домены → 400 c ошибкой для поля video.
+
+Задание 2: подписки на курс
+Subscription(user, course, unique); toggle-эндпоинт POST /api/courses/subscribe/ (добавляет/удаляет подписку);
+в CourseSerializer — флаг is_subscribed для текущего пользователя.
+
+**Пагинация**
+
+* Задание 3: courses/paginators.py → DefaultPagination(PageNumberPagination)
+Параметры: page_size, page_size_query_param="page_size", max_page_size;
+подключено в CourseViewSet и LessonViewSet.
+Пример: GET /api/courses/?page=1&page_size=3
+
+**Тесты**
+
+* Задание 4: автотесты на CRUD уроков, валидатор (не-YouTube → 400), подписку (toggle + is_subscribed), пагинацию.
+
+
 
 superuser:
 admin2@mail.ru
@@ -99,4 +123,18 @@ admin
 
 модератор
 {"email":"user_regular@example.com","password":"Passw0rd!"}
+
+# Домашняя работа: Документация и безопасноть
+
+## Реализовано
+
+- Подключена и настроена документация **drf-yasg** (Swagger, ReDoc).  
+- Реализована интеграция со **Stripe API**:  
+  - создание продукта;  
+  - создание цены;  
+  - создание checkout-сессии;  
+  - сохранение ссылки на оплату в модели `Payment`.  
+
+Оплата протестирована на тестовых картах Stripe, редирект и сохранение данных работают корректно.
+
 
