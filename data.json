@@ -1,0 +1,645 @@
+[
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "moderators",
+    "permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "istzpokyu05y25q9akpovf6ss5p4ir1a",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQRO_iGlnG8ZeSnjNYu-sNDiBbipMKcXcSKQVounlv5i0SrEtJa-c5TVlchBan3w6Bnlx3kB9Q701Sq8s8odwVedAuby3z63q4fwcFetnWBpRjZV1AMuQUD2cdiIL2zisYh2y3uAhujIDZxKg5a2TgAT0YG1B8vuKtOGY:1uu0zc:bKUuWoXmmPjk6x90_ZAbv5vC9fi_iUt7ZW-g3u-K-Ro",
+    "expire_date": "2025-09-18T03:50:36.482Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "yynwt0mvlj6gmdzk0etnqmvxw1u0fe1s",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQRO_iGlnG8ZeSnjNYu-sNDiBbipMKcXcSKQVounlv5i0SrEtJa-c5TVlchBan3w6Bnlx3kB9Q701Sq8s8odwVedAuby3z63q4fwcFetnWBpRjZV1AMuQUD2cdiIL2zisYh2y3uAhujIDZxKg5a2TgAT0YG1B8vuKtOGY:1unBJB:bhZlkib4Rutav6slg_To4F2mZ9tCc_dZ1M_Ho_4LZXA",
+    "expire_date": "2025-08-30T07:26:33.027Z"
+  }
+},
+{
+  "model": "django_celery_beat.intervalschedule",
+  "pk": 1,
+  "fields": {
+    "every": 1,
+    "period": "minutes"
+  }
+},
+{
+  "model": "django_celery_beat.crontabschedule",
+  "pk": 1,
+  "fields": {
+    "minute": "*",
+    "hour": "3",
+    "day_of_month": "*",
+    "month_of_year": "*",
+    "day_of_week": "*",
+    "timezone": "America/New_York"
+  }
+},
+{
+  "model": "django_celery_beat.crontabschedule",
+  "pk": 2,
+  "fields": {
+    "minute": "0",
+    "hour": "4",
+    "day_of_month": "*",
+    "month_of_year": "*",
+    "day_of_week": "*",
+    "timezone": "America/New_York"
+  }
+},
+{
+  "model": "django_celery_beat.crontabschedule",
+  "pk": 3,
+  "fields": {
+    "minute": "*",
+    "hour": "*",
+    "day_of_month": "*",
+    "month_of_year": "*",
+    "day_of_week": "*",
+    "timezone": "America/New_York"
+  }
+},
+{
+  "model": "django_celery_beat.crontabschedule",
+  "pk": 4,
+  "fields": {
+    "minute": "*",
+    "hour": "*",
+    "day_of_month": "*",
+    "month_of_year": "*",
+    "day_of_week": "*",
+    "timezone": "America/New_York"
+  }
+},
+{
+  "model": "django_celery_beat.crontabschedule",
+  "pk": 5,
+  "fields": {
+    "minute": "*",
+    "hour": "3",
+    "day_of_month": "*",
+    "month_of_year": "*",
+    "day_of_week": "*",
+    "timezone": "America/New_York"
+  }
+},
+{
+  "model": "django_celery_beat.periodictasks",
+  "pk": 1,
+  "fields": {
+    "last_update": "2025-09-06T05:26:37.000Z"
+  }
+},
+{
+  "model": "django_celery_beat.periodictask",
+  "pk": 1,
+  "fields": {
+    "name": "Deactivate inactive users daily",
+    "task": "users.tasks.deactivate_inactive_users",
+    "interval": null,
+    "crontab": 5,
+    "solar": null,
+    "clocked": null,
+    "args": "[]",
+    "kwargs": "{}",
+    "queue": null,
+    "exchange": null,
+    "routing_key": null,
+    "headers": "{}",
+    "priority": null,
+    "expires": null,
+    "expire_seconds": null,
+    "one_off": false,
+    "start_time": null,
+    "enabled": true,
+    "last_run_at": null,
+    "total_run_count": 0,
+    "date_changed": "2025-09-06T05:26:37.000Z",
+    "description": ""
+  }
+},
+{
+  "model": "django_celery_beat.periodictask",
+  "pk": 2,
+  "fields": {
+    "name": "celery.backend_cleanup",
+    "task": "celery.backend_cleanup",
+    "interval": null,
+    "crontab": 2,
+    "solar": null,
+    "clocked": null,
+    "args": "[]",
+    "kwargs": "{}",
+    "queue": null,
+    "exchange": null,
+    "routing_key": null,
+    "headers": "{}",
+    "priority": null,
+    "expires": null,
+    "expire_seconds": 43200,
+    "one_off": false,
+    "start_time": null,
+    "enabled": true,
+    "last_run_at": null,
+    "total_run_count": 0,
+    "date_changed": "2025-09-06T05:15:42.057Z",
+    "description": ""
+  }
+},
+{
+  "model": "django_celery_beat.periodictask",
+  "pk": 3,
+  "fields": {
+    "name": "Heartbeat every minute",
+    "task": "courses.tasks.heartbeat",
+    "interval": 1,
+    "crontab": null,
+    "solar": null,
+    "clocked": null,
+    "args": "[]",
+    "kwargs": "{}",
+    "queue": null,
+    "exchange": null,
+    "routing_key": null,
+    "headers": "{}",
+    "priority": null,
+    "expires": null,
+    "expire_seconds": null,
+    "one_off": false,
+    "start_time": null,
+    "enabled": true,
+    "last_run_at": "2025-09-06T05:41:00.013Z",
+    "total_run_count": 20,
+    "date_changed": "2025-09-06T05:41:55.086Z",
+    "description": ""
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$xAHEUm5XhvARDR1xMXOxKn$WvFWlGlli1r2h5IIebffnqsUHr7k9MWmIJr1qZGEZsE=",
+    "last_login": null,
+    "is_superuser": false,
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-08-13T05:24:45.779Z",
+    "email": "admin@mail.ru",
+    "phone": null,
+    "city": null,
+    "avatar": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$gUdKYt1AwmfWjxei0pGtOo$gzojufelppvrJGWZvSq9Bsmdwecb7bPzAQbkK39sm0g=",
+    "last_login": "2025-09-04T03:50:36.482Z",
+    "is_superuser": true,
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-08-16T07:25:23.666Z",
+    "email": "admin2@mail.ru",
+    "phone": null,
+    "city": null,
+    "avatar": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$RgvCBJOlUefReoDEnPBOei$a6YfqudoDSqOdAZUOINNHGPUWIBPMgP75NPuLf9fgOU=",
+    "last_login": null,
+    "is_superuser": false,
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-08-16T07:29:22Z",
+    "email": "user_regular@example.com",
+    "phone": null,
+    "city": null,
+    "avatar": "",
+    "groups": [
+      [
+        "moderators"
+      ]
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$Vcm7AbcGcw6yn5Ihjo38CB$XTSo4tTFZXuD7p/tYBguHkNdtnyGnjCE2RW+1vPNWGY=",
+    "last_login": null,
+    "is_superuser": false,
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-08-16T08:07:48.119Z",
+    "email": "user1@example.com",
+    "phone": null,
+    "city": null,
+    "avatar": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "",
+    "last_login": null,
+    "is_superuser": false,
+    "first_name": "Test",
+    "last_name": "User",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-09-04T03:42:18.522Z",
+    "email": "you@example.com",
+    "phone": null,
+    "city": null,
+    "avatar": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.payment",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "admin@mail.ru"
+    ],
+    "payment_date": "2025-08-13T06:40:28.495Z",
+    "paid_course": null,
+    "paid_lesson": 1,
+    "amount": "1.00",
+    "method": "transfer",
+    "stripe_session_id": null,
+    "stripe_checkout_url": null
+  }
+},
+{
+  "model": "users.payment",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "user1@example.com"
+    ],
+    "payment_date": "2025-08-28T05:00:01.438Z",
+    "paid_course": 1,
+    "paid_lesson": null,
+    "amount": "99.99",
+    "method": "stripe",
+    "stripe_session_id": null,
+    "stripe_checkout_url": null
+  }
+},
+{
+  "model": "users.payment",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "user1@example.com"
+    ],
+    "payment_date": "2025-08-28T05:10:31.219Z",
+    "paid_course": 1,
+    "paid_lesson": null,
+    "amount": "99.99",
+    "method": "stripe",
+    "stripe_session_id": "cs_test_a1tXe24PLJrem0Uk7u6cTGUbf2MdEDYpgkIf51QonbLewd7Va76iXbF1cj",
+    "stripe_checkout_url": "https://checkout.stripe.com/c/pay/cs_test_a1tXe24PLJrem0Uk7u6cTGUbf2MdEDYpgkIf51QonbLewd7Va76iXbF1cj#fidkdWxOYHwnPyd1blpxYHZxWjA0VjVyREI9f0k8aUFTR39panVvdml9MEpvbUhCUWBXUEQ3bDFjPV9jaUoxTmB2Qm1hdjRAQERkdzRWMzw8PTJxazNoY2hsSmM2QU5df2d1c2JQYXFRN1dcNTV3STJtN1R3SCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl"
+  }
+},
+{
+  "model": "users.payment",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "user1@example.com"
+    ],
+    "payment_date": "2025-08-28T05:13:10.676Z",
+    "paid_course": 1,
+    "paid_lesson": null,
+    "amount": "99.99",
+    "method": "stripe",
+    "stripe_session_id": "cs_test_a1aMG5ErmaY7cHZNlByxAs5wYqjMAZf1FY0O6BoVpngq7lljDpTXOaHaWr",
+    "stripe_checkout_url": "https://checkout.stripe.com/c/pay/cs_test_a1aMG5ErmaY7cHZNlByxAs5wYqjMAZf1FY0O6BoVpngq7lljDpTXOaHaWr#fidkdWxOYHwnPyd1blpxYHZxWjA0VjVyREI9f0k8aUFTR39panVvdml9MEpvbUhCUWBXUEQ3bDFjPV9jaUoxTmB2Qm1hdjRAQERkdzRWMzw8PTJxazNoY2hsSmM2QU5df2d1c2JQYXFRN1dcNTV3STJtN1R3SCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl"
+  }
+},
+{
+  "model": "users.payment",
+  "pk": 6,
+  "fields": {
+    "user": [
+      "user1@example.com"
+    ],
+    "payment_date": "2025-08-29T02:15:21.936Z",
+    "paid_course": 1,
+    "paid_lesson": null,
+    "amount": "99.99",
+    "method": "stripe",
+    "stripe_session_id": "cs_test_a1uGYbq3vakYheVeVJxG1Mn9iZgqG9DmxGLhsxDHcf8x5qcRNpcjWPPfsS",
+    "stripe_checkout_url": "https://checkout.stripe.com/c/pay/cs_test_a1uGYbq3vakYheVeVJxG1Mn9iZgqG9DmxGLhsxDHcf8x5qcRNpcjWPPfsS#fidkdWxOYHwnPyd1blpxYHZxWjA0VjVyREI9f0k8aUFTR39panVvdml9MEpvbUhCUWBXUEQ3bDFjPV9jaUoxTmB2Qm1hdjRAQERkdzRWMzw8PTJxazNoY2hsSmM2QU5df2d1c2JQYXFRN1dcNTV3STJtN1R3SCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 1,
+  "fields": {
+    "name": "Испанский — база обновил",
+    "description": "База, грамматика, фонетика",
+    "preview": "",
+    "owner": [
+      "admin2@mail.ru"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 2,
+  "fields": {
+    "name": "Китайский — база",
+    "description": "База, тональность, фонетика",
+    "preview": "",
+    "owner": [
+      "admin2@mail.ru"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 4,
+  "fields": {
+    "name": "Мой курс",
+    "description": "Описание",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 5,
+  "fields": {
+    "name": "Курс 2",
+    "description": "Описание",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 6,
+  "fields": {
+    "name": "Новый апдейт курса",
+    "description": "updated via postman again",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 7,
+  "fields": {
+    "name": "Курс 3",
+    "description": "Описание3",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 8,
+  "fields": {
+    "name": "Курс 4",
+    "description": "Описание4",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 9,
+  "fields": {
+    "name": "Курс 5",
+    "description": "Описание5",
+    "preview": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 10,
+  "fields": {
+    "name": "Test Course",
+    "description": "demo",
+    "preview": "",
+    "owner": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 1,
+  "fields": {
+    "name": "Испанский: фонетика",
+    "course": 1,
+    "description": "Базовая фонетика испанского",
+    "preview": "",
+    "video": null,
+    "owner": [
+      "admin2@mail.ru"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 2,
+  "fields": {
+    "name": "Испанский: грамматика",
+    "course": 1,
+    "description": "Базовая грамматика",
+    "preview": "",
+    "video": null,
+    "owner": [
+      "admin2@mail.ru"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 3,
+  "fields": {
+    "name": "Китайский: фонетика и тоны",
+    "course": 2,
+    "description": "Фонетика, тоны, пиньинь",
+    "preview": "",
+    "video": null,
+    "owner": [
+      "admin2@mail.ru"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 5,
+  "fields": {
+    "name": "Intro",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://youtu.be/dQw4w9WgXcQ",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 6,
+  "fields": {
+    "name": "long intro URL",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://www.youtube.com/watch?v=abcdef&list=PL123",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 7,
+  "fields": {
+    "name": "Mobile",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://m.youtube.com/watch?v=abcdef",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 8,
+  "fields": {
+    "name": "No video",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 9,
+  "fields": {
+    "name": "Intro",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://youtu.be/dQw4w9WgXcQ",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 10,
+  "fields": {
+    "name": "Long",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://www.youtube.com/watch?v=abc123&list=PL1",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 11,
+  "fields": {
+    "name": "Mobile",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "https://m.youtube.com/watch?v=abc123",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 12,
+  "fields": {
+    "name": "No video",
+    "course": 1,
+    "description": null,
+    "preview": "",
+    "video": "",
+    "owner": [
+      "user1@example.com"
+    ]
+  }
+},
+{
+  "model": "courses.subscription",
+  "pk": 6,
+  "fields": {
+    "user": [
+      "you@example.com"
+    ],
+    "course": 10,
+    "created_at": "2025-09-04T03:44:17.077Z"
+  }
+},
+{
+  "model": "courses.subscription",
+  "pk": 7,
+  "fields": {
+    "user": [
+      "you@example.com"
+    ],
+    "course": 6,
+    "created_at": "2025-09-04T04:08:30.859Z"
+  }
+}
+]

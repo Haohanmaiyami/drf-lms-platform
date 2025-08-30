@@ -27,3 +27,6 @@ htmlcov/
 # VSCode
 .vscode/
 .DS_Store
+celerybeat-schedule*
+
+db.sqlite3
