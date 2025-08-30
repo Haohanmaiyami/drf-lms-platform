@@ -8,6 +8,8 @@ from courses.models import Course, Lesson, Subscription
 from courses.paginators import DefaultPagination
 from courses.serializers import CourseSerializer, LessonSerializer
 from courses.permissions import IsModer, NotModer, IsOwner
+from rest_framework.pagination import PageNumberPagination
+from .tasks import send_course_update_email
 
 
 
@@ -51,10 +53,22 @@ class CourseViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)  # привязка владельца
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        # всегда шлём после обновления
+        send_course_update_email.delay(instance.id)
+
+
+class LessonPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
 
 class LessonViewSet(ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = LessonPagination
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

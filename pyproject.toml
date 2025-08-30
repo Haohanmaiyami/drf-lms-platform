@@ -19,7 +19,11 @@ dependencies = [
     "pytest-django (>=4.11.1,<5.0.0)",
     "pytest-cov (>=6.2.1,<7.0.0)",
     "drf-yasg (>=1.21.10,<2.0.0)",
-    "stripe (>=12.5.0,<13.0.0)"
+    "stripe (>=12.5.0,<13.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "celery (>=5.5.3,<6.0.0)",
+    "redis (>=6.4.0,<7.0.0)",
+    "certifi (>=2025.8.3,<2026.0.0)"
 ]
 
 [tool.poetry]
