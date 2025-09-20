@@ -161,3 +161,31 @@ admin
 - .env для конфигурации (в т.ч. REDIS_URL, EMAIL_*)
 
 - Postman — для проверки PATCH обновления курса
+
+## ДЗ по DOCKER и DOCKER COMPOSE
+
+SUPERUSER:
+kharitonovayan2018@gmail.com
+admin
+
+Инструкция для запуска
+
+## Запуск
+
+Как запускать проект одной командой:
+
+docker compose build
+docker compose up -d
+docker compose exec web python manage.py migrate
+docker compose ps - будет 5 сервисов celery, celery-beat, db, redis, web
+docker compose exec web python manage.py createsuperuser
+
+Как открыть бэкенд:
+
+http://localhost:8000/swagger/
+
+http://localhost:8000/redoc/
+
+http://localhost:8000/admin/
+
+http://localhost:8000/

@@ -16,6 +16,10 @@ import os
 from dotenv import load_dotenv
 from celery.schedules import crontab
 import certifi
+def env_bool(name: str, default: bool = False) -> bool:
+    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
+IN_DOCKER = os.path.exists("/.dockerenv") or env_bool("IN_DOCKER", False)
 
 from django.conf.global_settings import AUTH_USER_MODEL
 
@@ -29,12 +33,12 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-(x)isb1t1^+1&8((fju!grg9tzlhr%yt_@9!n26$x&yw-62+ro"
+SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DEBUG", True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
 
 # Application definition
@@ -87,14 +91,23 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+POSTGRES_DB = os.getenv("POSTGRES_DB", "drf_db")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "drf_user")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "drf_password")
+POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+
+POSTGRES_HOST_LOCAL = os.getenv("POSTGRES_HOST_LOCAL", "localhost")
+POSTGRES_HOST_DOCKER = os.getenv("POSTGRES_HOST_DOCKER", "db")
+POSTGRES_HOST = POSTGRES_HOST_DOCKER if IN_DOCKER else POSTGRES_HOST_LOCAL
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "drf_db",
-        "USER": "drf_user",
-        "PASSWORD": "drf_password",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": POSTGRES_DB,
+        "USER": POSTGRES_USER,
+        "PASSWORD": POSTGRES_PASSWORD,
+        "HOST": POSTGRES_HOST,
+        "PORT": POSTGRES_PORT,
     }
 }
 
@@ -134,6 +147,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -186,8 +200,8 @@ SWAGGER_SETTINGS = {
 
 
 
-CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://redis:6379/0")
 CELERY_TIMEZONE = 'America/New_York'
 CELERY_ENABLE_UTC = False
 
@@ -195,8 +209,7 @@ CELERY_ENABLE_UTC = False
 
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-def env_bool(name: str, default: bool = False) -> bool:
-    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
 
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
