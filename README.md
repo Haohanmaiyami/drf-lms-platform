@@ -1,6 +1,110 @@
-# 📚 DRF Project
+# DRF LMS Backend
+Backend project for an online learning platform (LMS) built with Django REST Framework.  Includes courses, lessons, custom users, payments, subscriptions, permissions, API docs, async tasks and Docker setup.
 
-Учебный проект на **Django REST Framework** для платформы онлайн-обучения (LMS).
+
+### Core Features
+
+- **Models**
+  - Custom user: email login, phone, city, avatar.
+  - **Course** and **Lesson** with one‑to‑many relation.
+  - **Payment**: payment for a course or lesson (amount, method, date).
+  - **Subscription**: user subscription to a course.
+
+- **API (DRF)**
+  - Full CRUD for courses (ViewSet) and lessons (generic views).
+  - `CourseSerializer` returns `lessons_count` and nested list of lessons.
+  - Pagination via page and `page_size` query params.
+
+- **Auth & Permissions**
+  - JWT authentication (token obtain & refresh).
+  - All APIs are protected by default (`IsAuthenticated`).
+  - Roles & permissions:
+    - regular user — sees and manages only own objects;
+    - moderator — can view and edit courses/lessons of other users;
+    - ownership check via `IsOwner` + `owner` field on `Course` and `Lesson`.
+
+- **Payments & Filtering**
+  - `Payment` model with fixtures for test data.
+  - `/api/payments/` endpoint with filters by course, lesson, payment method and ordering by date.
+  - **Stripe** integration:
+    - product & price creation;
+    - Checkout Session creation;
+    - storing payment URL in `Payment`.
+
+- **Subscriptions & Validators**
+  - Course subscriptions: `Subscription(user, course)` (unique pair).
+  - Toggle endpoint to subscribe/unsubscribe, `is_subscribed` flag in `CourseSerializer`.
+  - Video URL validator: only `youtube.com` / `youtu.be` are allowed; other domains return 400 for `video`.
+
+- **Documentation & Security**
+  - **drf-yasg** enabled: Swagger UI and ReDoc:
+    - `http://localhost:8000/swagger/`
+    - `http://localhost:8000/redoc/`
+  - Main endpoints are documented in the OpenAPI schema.
+
+- **Celery, Redis & Background Jobs**
+  - **Celery worker** and **celery-beat** configured, Redis as broker.
+  - Async email notifications to subscribers on course update (PATCH/PUT).
+  - Periodic task to deactivate inactive users (cron via beat).
+  - SMTP (Yandex Mail) used for sending emails.
+
+- **Docker & Docker Compose**
+  - `docker-compose` runs:
+    - web (Django/DRF),
+    - PostgreSQL,
+    - Redis,
+    - Celery worker,
+    - Celery beat.
+  - Example commands to run project and migrations:
+    - `docker compose up -d --build`
+    - `docker compose exec web python manage.py migrate`
+    - `docker compose exec web python manage.py createsuperuser`
+
+### Quick Start (local, without Docker)
+
+```bash
+git clone https://github.com/Haohanmaiyami/drf-proj.git
+cd drf-proj
+poetry install
+cp .env.example .env   # fill DB, Redis, email, Stripe, etc.
+python manage.py migrate
+python manage.py runserver
+```
+
+Main URLs:
+
+- Swagger: `http://localhost:8000/swagger/`
+- ReDoc: `http://localhost:8000/redoc/`
+- Admin: `http://localhost:8000/admin/`
+- Sample API: `http://localhost:8000/api/courses/`
+
+### Test Users
+
+- Superuser: `admin@mail.ru` / `admin`
+- Superuser (docker version): `admin2@mail.ru` / `admin`
+- Regular user: `user1@example.com` / `Passw0rd!`
+- Moderator: `user_regular@example.com` / `Passw0rd!`
+
+
+------------------------------------------------------------------------
+-------------
+------------------------------------
+-------------
+------------------------------------
+-------------
+------------------------------------
+-------------
+------------------------------------
+-------------
+
+-------------
+
+
+# 📚 DRF LMS Backend
+
+Учебный backend-проект платформы онлайн-обучения (LMS) на Django REST Framework.  
+Реализует курсы, уроки, пользователей, оплату, подписки, права доступа, документацию, асинхронные задачи и запуск через Docker.
+
 
 ## 🚀 Установка
 
