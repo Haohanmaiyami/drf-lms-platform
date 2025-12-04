@@ -61,4 +61,5 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("success/", payment_success, name="payment_success"),
     path("cancel/", payment_cancel, name="payment_cancel"),
+    path("", lambda r: HttpResponse("все ок")),
 ]
