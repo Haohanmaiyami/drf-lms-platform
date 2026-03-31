@@ -30,3 +30,10 @@ htmlcov/
 celerybeat-schedule*
 
 db.sqlite3
+
+
+dump.rdb
+.coverage
+htmlcov/
+celerybeat-schedule*
+.env
