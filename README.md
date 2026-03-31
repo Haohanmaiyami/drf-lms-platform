@@ -1,191 +1,228 @@
-# 📚 DRF Project
+# 📚 DRF LMS Platform
 
-Учебный проект на **Django REST Framework** для платформы онлайн-обучения (LMS).
+Учебный backend-проект платформы онлайн-обучения (LMS), реализованный на **Django REST Framework** с поддержкой Docker, Celery и платежей.
 
-## 🚀 Установка
+---
 
-```
+## 🚀 Быстрый запуск (Docker)
+
+### 1. Клонировать репозиторий
+
+```bash
 git clone https://github.com/Haohanmaiyami/drf-proj.git
 cd drf-proj
-poetry install
 ```
 
-## 🖥️ Запуск сервера
+---
 
-```
-python manage.py runserver
-```
+### 2. Создать `.env`
 
-## 🧪 Тестирование API
+Создай файл `.env` на основе `.env.example`
 
-- Используйте Postman или другой HTTP-клиент
-- Примеры эндпоинтов:
-  - `GET /courses/`
-  - `POST /courses/`
-  - `GET /courses/lessons/`
+Пример:
 
-## 🛠️ Стек технологий
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
 
-- Python 3.13
-- Django
-- Django REST Framework
-- PostgreSQL (если подключается)
+POSTGRES_DB=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
 
-## 📁 Структура проекта
-
-```
-drf-proj/
-├── config/              # Настройки проекта
-├── courses/             # Приложение с курсами и уроками
-├── manage.py
-├── .env.example         # Пример конфигурации окружения
-├── .gitignore
-├── README.md
-└── pyproject.toml
+REDIS_URL=redis://redis:6379/0
 ```
 
-## 👤 Автор
+---
 
-[Haohanmaiyami](https://github.com/Haohanmaiyami)
+### 3. Запуск проекта
 
-admin@mail.ru password admin - super user
+```bash
+docker compose up --build
+```
 
-"email": "newuser@mail.com",
-  "password": "Strongpass123",
-  "first_name": "Тест",
-  "last_name": "Юзер",
-  "phone": "1234567890"
+---
 
-#  Домашняя работа по сериализаторам
+### 4. Открыть в браузере
 
-## Что было реализовано
+* 🔹 Swagger → http://localhost:8000/swagger/
+* 🔹 ReDoc → http://localhost:8000/redoc/
+* 🔹 Admin → http://localhost:8000/admin/
+* 🔹 API → http://localhost:8000/
 
-- **Поле `lessons_count` в CourseSerializer**  
-  Добавлено через `SerializerMethodField`, возвращает количество уроков, связанных с курсом.
+---
 
-- **Вложенный вывод уроков (`lessons`) в CourseSerializer**  
-  Используется `LessonSerializer` для отображения всех уроков курса в одном ответе вместе с `lessons_count`.
+## 🔐 Тестовые пользователи
 
-- **Модель `Payment` в приложении `users`**  
-  Поля: пользователь, дата оплаты, оплаченный курс или урок, сумма, метод оплаты (`cash` / `transfer`).  
-  Реализованы связи с соответствующими моделями.
+### 👑 Superuser
 
-- **Тестовые данные для платежей**  
-  Добавлены фикстуры `users/fixtures/payments.json` с примерами оплат курсов и уроков.
+```
+email: kharitonovayan2018@gmail.com
+password: admin
+```
 
-- **Фильтрация и сортировка для `/api/payments/`**  
-  Поддержка фильтров по курсу, уроку, способу оплаты и сортировки по дате оплаты (возрастание/убывание).
+### 👤 Обычный пользователь
 
+```
+email: user1@example.com
+password: Passw0rd!
+```
 
+### 🛡️ Модератор
 
-# Домашняя работа: Права доступа в DRF
+```
+email: user_regular@example.com
+password: Passw0rd!
+```
 
-- JWT и закрытие API
-Подключён JWT; по умолчанию все эндпоинты закрыты (IsAuthenticated). Открыты только: POST /api/register/, POST /api/token/, POST /api/token/refresh/. Профиль — через защищённые эндпоинты.
+---
 
-- Роли и пермишены модераторов
-Фикстура группы moderators (users/fixtures/groups.json). Пермишены: IsModer, NotModer, IsOwner. В ViewSet права разведены по action: модератор читает/редактирует любые, но не создаёт и не удаляет.
+## 🧪 Основные эндпоинты
 
-- Владение объектами (курсы и уроки)
-В моделях Course и Lesson добавлен owner (FK на пользователя). В perform_create() — автопривязка owner=self.request.user. В get_queryset() — фильтр «только свои» для немодераторов; объектный доступ через IsOwner.
+```
+POST   /api/register/
+POST   /api/token/
+POST   /api/token/refresh/
 
-# Домашняя работа: Валидаторы, пагинация, тесты
+GET    /api/courses/
+POST   /api/courses/
 
-**Валидация**
+GET    /api/lessons/
+POST   /api/lessons/
 
-* Задание 1: реализован валидатор ссылок (только youtube.com / youtu.be)
-courses/validators.py → validate_youtube_url + подключён к LessonSerializer.video
-Некорректные домены → 400 c ошибкой для поля video.
+POST   /api/courses/subscribe/
 
-Задание 2: подписки на курс
-Subscription(user, course, unique); toggle-эндпоинт POST /api/courses/subscribe/ (добавляет/удаляет подписку);
-в CourseSerializer — флаг is_subscribed для текущего пользователя.
+GET    /api/payments/
+```
 
-**Пагинация**
+---
 
-* Задание 3: courses/paginators.py → DefaultPagination(PageNumberPagination)
-Параметры: page_size, page_size_query_param="page_size", max_page_size;
-подключено в CourseViewSet и LessonViewSet.
-Пример: GET /api/courses/?page=1&page_size=3
+## ⚙️ Стек технологий
 
-**Тесты**
+* 🐍 Python 3.12 (Docker)
+* 🌐 Django
+* 🔗 Django REST Framework
+* 🐘 PostgreSQL
+* ⚡ Redis
+* 🔄 Celery + Celery Beat
+* 🐳 Docker / Docker Compose
+* 💳 Stripe API
 
-* Задание 4: автотесты на CRUD уроков, валидатор (не-YouTube → 400), подписку (toggle + is_subscribed), пагинацию.
+---
 
+## 📦 Основной функционал
 
+### 📚 Курсы и уроки
 
-superuser:
-admin2@mail.ru
-admin
+* CRUD для курсов и уроков
+* Вложенные уроки внутри курса
+* Подсчёт количества уроков
 
-обычный пользователь
-{"email":"user1@example.com","password":"Passw0rd!"}
+---
 
-модератор
-{"email":"user_regular@example.com","password":"Passw0rd!"}
+### 🔐 Аутентификация
 
-# Домашняя работа: Документация и безопасноть
+* JWT (access / refresh токены)
+* Закрытый API (IsAuthenticated)
 
-## Реализовано
+---
 
-- Подключена и настроена документация **drf-yasg** (Swagger, ReDoc).  
-- Реализована интеграция со **Stripe API**:  
-  - создание продукта;  
-  - создание цены;  
-  - создание checkout-сессии;  
-  - сохранение ссылки на оплату в модели `Payment`.  
+### 👥 Роли и права доступа
 
-Оплата протестирована на тестовых картах Stripe, редирект и сохранение данных работают корректно.
+* пользователь
 
+* модератор
 
-# Домашняя работа: Celery beat + Celery beat + Redis
+* администратор
 
-## Что сделано:
+* модератор может:
 
-Задание 1: настроен Celery (worker) и celery-beat (периодические задачи); Redis вынесен в .env.
+  * читать и редактировать любые данные
 
-Задание 2: при PATCH/PUT курса шлётся асинхронная рассылка подписчикам (Celery-task).
+* пользователь:
 
-Задание 3: добавлена периодическая задача деактивации неактивных пользователей (через beat, по cron).
+  * работает только со своими объектами
 
-## Что использовалось:
+---
 
-- Django / DRF
+### 💳 Платежи
 
-- Celery + celery-beat
+* интеграция со Stripe
+* создание checkout session
+* сохранение ссылок на оплату
 
-- Redis (broker / results)
+---
 
-- SMTP (Yandex Mail) для отправки писем
+### 📩 Рассылки
 
-- .env для конфигурации (в т.ч. REDIS_URL, EMAIL_*)
+* асинхронные задачи через Celery
+* уведомления при обновлении курса
 
-- Postman — для проверки PATCH обновления курса
+---
 
-## ДЗ по DOCKER и DOCKER COMPOSE
+### ⏱️ Периодические задачи
 
-SUPERUSER:
-kharitonovayan2018@gmail.com
-admin
+* Celery Beat
+* деактивация неактивных пользователей
 
-Инструкция для запуска
+---
 
-## Запуск
+### ✅ Валидация
 
-Как запускать проект одной командой:
+* проверка ссылок только на YouTube
+* защита данных на уровне сериализаторов
 
-docker compose build
-docker compose up -d
-docker compose exec web python manage.py migrate
-docker compose ps - будет 5 сервисов celery, celery-beat, db, redis, web
-docker compose exec web python manage.py createsuperuser
+---
 
-Как открыть бэкенд:
+### 📄 Пагинация
 
-http://localhost:8000/swagger/
+* PageNumberPagination
+* настройка размера страницы
 
-http://localhost:8000/redoc/
+---
 
-http://localhost:8000/admin/
+### 🧪 Тестирование
 
-http://localhost:8000/
+* CRUD тесты
+* подписки
+* валидаторы
+* пагинация
+
+---
+
+## 🧠 Архитектура
+
+Проект разделён на приложения:
+
+```
+config/      # настройки Django
+courses/     # курсы, уроки, подписки
+users/       # пользователи и платежи
+```
+
+---
+
+## 🐳 Docker архитектура
+
+Проект запускается через docker-compose и включает:
+
+* web (Django)
+* db (PostgreSQL)
+* redis
+* celery (worker)
+* celery-beat
+
+---
+
+## 👨‍💻 Автор
+
+👉 https://github.com/Haohanmaiyami
+
+---
+
+## 💬 Примечание
+
+Проект полностью готов для локального запуска через Docker и может использоваться как backend для frontend-приложений (например, Flutter).
+
+---
