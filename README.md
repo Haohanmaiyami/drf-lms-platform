@@ -9,8 +9,8 @@
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/Haohanmaiyami/drf-proj.git
-cd drf-proj
+git clone https://github.com/Haohanmaiyami/drf-lms-platform.git
+cd drf-lms-platform
 ```
 
 ---
@@ -228,6 +228,3 @@ users/       # пользователи и платежи
 ---
 
 
-## ⚠️ Перед запуском
-
-Создайте файл `.env` на основе `.env.example`
