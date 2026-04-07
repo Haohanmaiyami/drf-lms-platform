@@ -10,6 +10,7 @@ from courses.serializers import CourseSerializer, LessonSerializer
 from courses.permissions import IsModer, NotModer, IsOwner
 from rest_framework.pagination import PageNumberPagination
 from .tasks import send_course_update_email
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 
@@ -17,6 +18,7 @@ class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     pagination_class = DefaultPagination
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         qs = Course.objects.all()
@@ -69,6 +71,7 @@ class LessonViewSet(ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = LessonPagination
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
