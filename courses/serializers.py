@@ -1,12 +1,10 @@
-from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from courses.validators import validate_youtube_url
-
-
 from courses.models import Course, Lesson
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     video = serializers.URLField(
         required=False,
@@ -14,18 +12,36 @@ class LessonSerializer(serializers.ModelSerializer):
         allow_blank=True,
         validators=[validate_youtube_url],
     )
+    preview_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "course",
+            "description",
+            "preview",
+            "preview_url",
+            "video",
+            "owner",
+        )
+
+    def get_preview_url(self, obj):
+        request = self.context.get("request")
+        if obj.preview:
+            url = obj.preview.url
+            return request.build_absolute_uri(url) if request else url
+        return None
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     lessons_count = serializers.SerializerMethodField()
-    # т к нет related name тогда придется lesson_set
     lessons = LessonSerializer(source="lesson_set", many=True, read_only=True)
     is_subscribed = serializers.SerializerMethodField()
+    preview_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -34,6 +50,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "preview",
+            "preview_url",
             "owner",
             "lessons_count",
             "lessons",
@@ -48,3 +65,10 @@ class CourseSerializer(serializers.ModelSerializer):
         if not (request and request.user and request.user.is_authenticated):
             return False
         return obj.subscriptions.filter(user=request.user).exists()
+
+    def get_preview_url(self, obj):
+        request = self.context.get("request")
+        if obj.preview:
+            url = obj.preview.url
+            return request.build_absolute_uri(url) if request else url
+        return None

@@ -7,6 +7,7 @@ __pycache__/
 # Environments
 .env
 .env.*
+!.env.example
 
 # Poetry
 poetry.lock
@@ -30,3 +31,10 @@ htmlcov/
 celerybeat-schedule*
 
 db.sqlite3
+
+
+dump.rdb
+.coverage
+htmlcov/
+celerybeat-schedule*
+.env

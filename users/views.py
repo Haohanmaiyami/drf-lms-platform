@@ -11,6 +11,7 @@ from .models import Payment
 from .serializers import UserSerializer, PaymentSerializer
 from .serializers import UserRegisterSerializer
 from .services.stripe_service import create_price, create_product, create_checkout_session
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 
@@ -19,6 +20,7 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_object(self):
         return self.request.user

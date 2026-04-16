@@ -62,11 +62,11 @@ class LessonCRUDTests(APITestCase):
         lesson = create_lesson(self.owner, self.course, "Only mine")
         # Пытается другой пользователь
         self.client.force_authenticate(self.other)
-        resp = self.client.patch(f"/api/lessons/{lesson.id}/", data={"name": "Hack"})
+        resp = self.client.patch(f"/api/lessons/{lesson.public_id}/", data={"name": "Hack"})
         self.assertIn(
             resp.status_code, (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
         )
-        resp = self.client.delete(f"/api/lessons/{lesson.id}/")
+        resp = self.client.delete(f"/api/lessons/{lesson.public_id}/")
         self.assertIn(
             resp.status_code, (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
         )
@@ -97,7 +97,7 @@ class SubscriptionTests(APITestCase):
 
         # 1) Подписка (добавление)
         resp = self.client.post(
-            "/api/courses/subscribe/", data={"course_id": self.course.id}
+            "/api/courses/subscribe/", data={"course_id": str(self.course.public_id)}
         )
         self.assertIn(resp.status_code, (status.HTTP_201_CREATED, status.HTTP_200_OK))
         self.assertTrue(
