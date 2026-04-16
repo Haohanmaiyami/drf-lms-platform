@@ -17,6 +17,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    lookup_field = "public_id"
     pagination_class = DefaultPagination
     parser_classes = (MultiPartParser, FormParser)
 
@@ -69,6 +70,7 @@ class LessonPagination(PageNumberPagination):
 
 class LessonViewSet(ModelViewSet):
     serializer_class = LessonSerializer
+    lookup_field = "public_id"
     permission_classes = [IsAuthenticated]
     pagination_class = LessonPagination
     parser_classes = (MultiPartParser, FormParser)
@@ -106,7 +108,7 @@ class SubscriptionAPIView(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         course_id = request.data.get("course_id")
-        course = get_object_or_404(Course, pk=course_id)
+        course = get_object_or_404(Course, public_id=course_id)
 
         existing = Subscription.objects.filter(user=user, course=course)
         if existing.exists():

@@ -1,8 +1,16 @@
+import uuid
+
 from django.db import models
 from django.conf import settings
 
 
 class Course(models.Model):
+    public_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        verbose_name="Публичный UUID",
+    )
     name = models.CharField(
         max_length=100, verbose_name="Имя курса", help_text="Укажите название курса"
     )
@@ -35,6 +43,12 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
+    public_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        verbose_name="Публичный UUID",
+    )
     name = models.CharField(
         max_length=100, verbose_name="Имя урока", help_text="Укажите название урока"
     )

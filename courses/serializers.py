@@ -4,6 +4,7 @@ from courses.models import Course, Lesson
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     video = serializers.URLField(
         required=False,
@@ -15,7 +16,16 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "course",
+            "description",
+            "preview",
+            "preview_url",
+            "video",
+            "owner",
+        )
 
     def get_preview_url(self, obj):
         request = self.context.get("request")
@@ -26,6 +36,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     lessons_count = serializers.SerializerMethodField()
     lessons = LessonSerializer(source="lesson_set", many=True, read_only=True)
