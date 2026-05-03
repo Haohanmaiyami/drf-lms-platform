@@ -38,3 +38,16 @@ class IsOwner(BasePermission):
         if owner is None and hasattr(obj, "course"):
             owner = getattr(obj.course, "owner", None)
         return owner == request.user
+
+def has_course_access(user, course):
+    if not user or not user.is_authenticated:
+        return False
+
+    if course is None:
+        return False
+
+    return (
+        course.owner == user
+        or user.groups.filter(name=MODERATORS).exists()
+        or course.subscriptions.filter(user=user).exists()
+    )

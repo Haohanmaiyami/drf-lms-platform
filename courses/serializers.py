@@ -39,7 +39,7 @@ class CourseSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     lessons_count = serializers.SerializerMethodField()
-    lessons = LessonSerializer(source="lesson_set", many=True, read_only=True)
+    lessons = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
 
@@ -59,6 +59,19 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_lessons_count(self, obj):
         return obj.lesson_set.count()
+
+    def get_lessons(self, obj):
+        from courses.permissions import has_course_access
+
+        request = self.context.get("request")
+        if not request:
+            return []
+
+        if not has_course_access(request.user, obj):
+            return []
+
+        lessons = obj.lesson_set.all()
+        return LessonSerializer(lessons, many=True, context=self.context).data
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request")
