@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+import requests
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView
@@ -105,13 +105,25 @@ class PasswordResetRequestView(APIView):
                 f"?uid={uid}&token={token}"
             )
 
-            send_mail(
-                subject="Password reset",
-                message=f"Use this link to reset your password: {reset_link}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            response = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {settings.EMAIL_HOST_PASSWORD}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": settings.DEFAULT_FROM_EMAIL,
+                    "to": [user.email],
+                    "subject": "Password reset",
+                    "html": f"""
+                        <p>Use this link to reset your password:</p>
+                        <p><a href="{reset_link}">{reset_link}</a></p>
+                    """,
+                },
+                timeout=20,
             )
+
+            response.raise_for_status()
 
         return Response(
             {"detail": "If this email exists, a reset link has been sent."},
