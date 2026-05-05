@@ -101,7 +101,7 @@ class PasswordResetRequestView(APIView):
             token = default_token_generator.make_token(user)
 
             reset_link = (
-                f"http://45.12.231.230:8000/api/reset-password/"
+                f"http://127.0.0.1:8000/api/reset-password/"
                 f"?uid={uid}&token={token}"
             )
 
