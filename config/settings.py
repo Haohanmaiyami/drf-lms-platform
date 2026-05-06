@@ -242,3 +242,5 @@ os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://45.12.231.230:8000")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lingloop.org")
+
+PASSWORD_RESET_TIMEOUT = 7200
