@@ -95,9 +95,16 @@ class PasswordResetRequestView(APIView):
         email = serializer.validated_data["email"]
         user = User.objects.filter(email=email).first()
 
+        response_data = {
+            "detail": "If this email exists, a reset link has been sent."
+        }
+
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
+
+            response_data["uid"] = uid
+            response_data["token"] = token
 
             reset_link = (
                 f"{settings.FRONTEND_URL}/api/reset-password/"
@@ -124,10 +131,7 @@ class PasswordResetRequestView(APIView):
 
             response.raise_for_status()
 
-        return Response(
-            {"detail": "If this email exists, a reset link has been sent."},
-            status=status.HTTP_200_OK,
-        )
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmView(APIView):
