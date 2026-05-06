@@ -17,7 +17,6 @@ from .serializers import (
 )
 from .services.stripe_service import create_price, create_product, create_checkout_session
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -101,14 +100,14 @@ class PasswordResetRequestView(APIView):
             token = default_token_generator.make_token(user)
 
             reset_link = (
-                f"http://45.12.231.230:8000/api/reset-password/"
+                f"{settings.FRONTEND_URL}/api/reset-password/"
                 f"?uid={uid}&token={token}"
             )
 
             response = requests.post(
                 "https://api.resend.com/emails",
                 headers={
-                    "Authorization": f"Bearer {settings.EMAIL_HOST_PASSWORD}",
+                    "Authorization": f"Bearer {settings.RESEND_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json={
