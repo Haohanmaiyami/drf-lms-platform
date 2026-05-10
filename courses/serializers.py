@@ -26,6 +26,7 @@ class LessonSerializer(serializers.ModelSerializer):
             "preview_url",
             "video",
             "owner",
+            "is_completed",
         )
 
     def get_preview_url(self, obj):
