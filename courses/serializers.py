@@ -69,7 +69,6 @@ class CourseSerializer(serializers.ModelSerializer):
             "lessons_count",
             "lessons",
             "is_subscribed",
-            "is_completed",
         )
 
     def get_lessons_count(self, obj):
