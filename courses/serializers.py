@@ -1,11 +1,12 @@
 from rest_framework import serializers
 from courses.validators import validate_youtube_url
-from courses.models import Course, Lesson
+from courses.models import Course, Lesson, LessonProgress
 
 
 class LessonSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
+    is_completed = serializers.SerializerMethodField()
     video = serializers.URLField(
         required=False,
         allow_null=True,
@@ -34,6 +35,18 @@ class LessonSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(url) if request else url
         return None
 
+    def get_is_completed(self, obj):
+        request = self.context.get("request")
+
+        if not (request and request.user and request.user.is_authenticated):
+            return False
+
+        return LessonProgress.objects.filter(
+            user=request.user,
+            lesson=obj,
+            is_completed=True,
+        ).exists()
+
 
 class CourseSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="public_id", read_only=True)
@@ -55,6 +68,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "lessons_count",
             "lessons",
             "is_subscribed",
+            "is_completed",
         )
 
     def get_lessons_count(self, obj):

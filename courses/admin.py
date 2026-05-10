@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Lesson, Subscription
+from .models import Course, Lesson, Subscription, LessonProgress
 
 
 @admin.register(Course)
@@ -19,3 +19,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
     search_fields = ("user__email", "course__name")
     list_filter = ("course",)
     raw_id_fields = ("user", "course")
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "lesson", "is_completed", "completed_at")
+    list_filter = ("is_completed", "completed_at")
+    search_fields = ("user__email", "lesson__name")
+    raw_id_fields = ("user", "lesson")

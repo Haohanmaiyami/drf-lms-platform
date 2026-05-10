@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from courses.models import Course, Lesson, Subscription
+from courses.models import Course, Lesson, Subscription, LessonProgress
 from courses.paginators import DefaultPagination
 from courses.serializers import CourseSerializer, LessonSerializer
 from courses.permissions import IsModer, NotModer, IsOwner, has_course_access
@@ -12,6 +12,7 @@ from rest_framework.pagination import PageNumberPagination
 from .tasks import send_course_update_email
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import PermissionDenied
+from django.utils import timezone
 
 
 class CourseViewSet(ModelViewSet):
@@ -123,4 +124,52 @@ class SubscriptionAPIView(APIView):
             {"message": "подписка добавлена"}, status=status.HTTP_201_CREATED
         )
 
+class LessonCompleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, lesson_id, *args, **kwargs):
+        lesson = get_object_or_404(Lesson, public_id=lesson_id)
+
+        if not has_course_access(request.user, lesson.course):
+            raise PermissionDenied("Subscribe to access this lesson.")
+
+        progress, created = LessonProgress.objects.get_or_create(
+            user=request.user,
+            lesson=lesson,
+        )
+
+        progress.is_completed = True
+        progress.completed_at = timezone.now()
+        progress.save()
+
+        return Response(
+            {
+                "lesson_id": str(lesson.public_id),
+                "is_completed": True,
+                "message": "урок отмечен как пройденный",
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request, lesson_id, *args, **kwargs):
+        lesson = get_object_or_404(Lesson, public_id=lesson_id)
+
+        progress = LessonProgress.objects.filter(
+            user=request.user,
+            lesson=lesson,
+        ).first()
+
+        if progress:
+            progress.is_completed = False
+            progress.completed_at = None
+            progress.save()
+
+        return Response(
+            {
+                "lesson_id": str(lesson.public_id),
+                "is_completed": False,
+                "message": "отметка о прохождении снята",
+            },
+            status=status.HTTP_200_OK,
+        )
 

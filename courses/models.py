@@ -120,3 +120,40 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.course}"
+
+
+class LessonProgress(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="lesson_progress",
+        verbose_name="Пользователь",
+    )
+    lesson = models.ForeignKey(
+        "courses.Lesson",
+        on_delete=models.CASCADE,
+        related_name="progress",
+        verbose_name="Урок",
+    )
+    is_completed = models.BooleanField(
+        default=False,
+        verbose_name="Урок пройден",
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Дата прохождения",
+    )
+
+    class Meta:
+        verbose_name = "Прогресс урока"
+        verbose_name_plural = "Прогресс уроков"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "lesson"],
+                name="unique_user_lesson_progress",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.lesson} → {self.is_completed}"
