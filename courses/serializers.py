@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from courses.validators import validate_youtube_url
-from courses.models import Course, Lesson, LessonProgress
+from courses.models import (
+    Course,
+    Lesson,
+    LessonProgress,
+    Quiz,
+    QuizQuestion,
+    QuizAnswerOption,
+)
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -99,3 +106,37 @@ class CourseSerializer(serializers.ModelSerializer):
             url = obj.preview.url
             return request.build_absolute_uri(url) if request else url
         return None
+
+class QuizAnswerOptionSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+
+    class Meta:
+        model = QuizAnswerOption
+        fields = ("id", "text")
+
+
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+    options = QuizAnswerOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = QuizQuestion
+        fields = ("id", "text", "options")
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+    questions = QuizQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Quiz
+        fields = ("id", "title", "description", "questions")
+
+
+class QuizSubmitAnswerSerializer(serializers.Serializer):
+    question_id = serializers.UUIDField()
+    option_id = serializers.UUIDField()
+
+
+class QuizSubmitSerializer(serializers.Serializer):
+    answers = QuizSubmitAnswerSerializer(many=True)

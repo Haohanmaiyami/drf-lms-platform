@@ -4,16 +4,29 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from courses.models import Course, Lesson, Subscription, LessonProgress
+from courses.models import (
+    Course,
+    Lesson,
+    Subscription,
+    LessonProgress,
+    Quiz,
+    QuizAttempt,
+    QuizAttemptAnswer,
+)
 from courses.paginators import DefaultPagination
-from courses.serializers import CourseSerializer, LessonSerializer
+from courses.serializers import (
+    CourseSerializer,
+    LessonSerializer,
+    QuizSerializer,
+    QuizSubmitSerializer,
+)
 from courses.permissions import IsModer, NotModer, IsOwner, has_course_access
 from rest_framework.pagination import PageNumberPagination
 from .tasks import send_course_update_email
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
-
+from django.db import transaction
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
@@ -173,3 +186,124 @@ class LessonCompleteAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
+def get_english_level(percent):
+    if percent < 40:
+        return "A2"
+    if percent < 60:
+        return "B1"
+    if percent < 80:
+        return "B2"
+    return "C1"
+
+
+class LessonQuizAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, lesson_id, *args, **kwargs):
+        lesson = get_object_or_404(Lesson, public_id=lesson_id)
+
+        if not has_course_access(request.user, lesson.course):
+            raise PermissionDenied("Subscribe to access this lesson.")
+
+        quiz = get_object_or_404(
+            Quiz.objects.prefetch_related("questions__options"),
+            lesson=lesson,
+            is_active=True,
+        )
+
+        serializer = QuizSerializer(quiz)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class QuizSubmitAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, quiz_id, *args, **kwargs):
+        quiz = get_object_or_404(
+            Quiz.objects.prefetch_related("questions__options"),
+            public_id=quiz_id,
+            is_active=True,
+        )
+
+        if not has_course_access(request.user, quiz.lesson.course):
+            raise PermissionDenied("Subscribe to access this quiz.")
+
+        serializer = QuizSubmitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        submitted_answers = serializer.validated_data["answers"]
+        answers_map = {
+            str(item["question_id"]): str(item["option_id"])
+            for item in submitted_answers
+        }
+
+        questions = list(quiz.questions.all())
+        total_questions = len(questions)
+        score = 0
+        result_answers = []
+
+        with transaction.atomic():
+            attempt = QuizAttempt.objects.create(
+                user=request.user,
+                quiz=quiz,
+                total_questions=total_questions,
+            )
+
+            for question in questions:
+                selected_option_id = answers_map.get(str(question.public_id))
+                selected_option = None
+                is_correct = False
+
+                if selected_option_id:
+                    selected_option = question.options.filter(
+                        public_id=selected_option_id
+                    ).first()
+
+                    if selected_option and selected_option.is_correct:
+                        is_correct = True
+                        score += 1
+
+                QuizAttemptAnswer.objects.create(
+                    attempt=attempt,
+                    question=question,
+                    selected_option=selected_option,
+                    is_correct=is_correct,
+                )
+
+                correct_option = question.options.filter(is_correct=True).first()
+
+                result_answers.append(
+                    {
+                        "question_id": str(question.public_id),
+                        "question": question.text,
+                        "selected_option_id": (
+                            str(selected_option.public_id)
+                            if selected_option
+                            else None
+                        ),
+                        "selected_option": selected_option.text if selected_option else None,
+                        "correct_option": correct_option.text if correct_option else None,
+                        "is_correct": is_correct,
+                        "explanation": question.explanation,
+                    }
+                )
+
+            percent = round((score / total_questions) * 100) if total_questions else 0
+            level = get_english_level(percent)
+
+            attempt.score = score
+            attempt.percent = percent
+            attempt.level = level
+            attempt.save()
+
+        return Response(
+            {
+                "quiz_id": str(quiz.public_id),
+                "score": score,
+                "total_questions": total_questions,
+                "percent": percent,
+                "level": level,
+                "answers": result_answers,
+            },
+            status=status.HTTP_200_OK,
+        )

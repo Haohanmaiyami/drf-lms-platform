@@ -157,3 +157,112 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.lesson} → {self.is_completed}"
+
+
+class Quiz(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    lesson = models.OneToOneField(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="quiz",
+        verbose_name="Урок",
+    )
+    title = models.CharField(max_length=255, verbose_name="Название теста")
+    description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Тест"
+        verbose_name_plural = "Тесты"
+
+    def __str__(self):
+        return self.title
+
+
+class QuizQuestion(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name="questions",
+        verbose_name="Тест",
+    )
+    text = models.TextField(verbose_name="Вопрос")
+    explanation = models.TextField(blank=True, null=True, verbose_name="Объяснение")
+    order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
+
+    class Meta:
+        verbose_name = "Вопрос теста"
+        verbose_name_plural = "Вопросы теста"
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return self.text[:80]
+
+
+class QuizAnswerOption(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    question = models.ForeignKey(
+        QuizQuestion,
+        on_delete=models.CASCADE,
+        related_name="options",
+        verbose_name="Вопрос",
+    )
+    text = models.CharField(max_length=255, verbose_name="Вариант ответа")
+    is_correct = models.BooleanField(default=False, verbose_name="Правильный ответ")
+    order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
+
+    class Meta:
+        verbose_name = "Вариант ответа"
+        verbose_name_plural = "Варианты ответов"
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return self.text
+
+
+class QuizAttempt(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quiz_attempts",
+    )
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+    )
+    score = models.PositiveIntegerField(default=0)
+    total_questions = models.PositiveIntegerField(default=0)
+    percent = models.PositiveIntegerField(default=0)
+    level = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Попытка теста"
+        verbose_name_plural = "Попытки тестов"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} — {self.quiz} — {self.percent}%"
+
+
+class QuizAttemptAnswer(models.Model):
+    attempt = models.ForeignKey(
+        QuizAttempt,
+        on_delete=models.CASCADE,
+        related_name="answers",
+    )
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    selected_option = models.ForeignKey(
+        QuizAnswerOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Ответ пользователя"
+        verbose_name_plural = "Ответы пользователей"

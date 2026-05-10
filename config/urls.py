@@ -6,6 +6,8 @@ from courses.views import (
     LessonViewSet,
     SubscriptionAPIView,
     LessonCompleteAPIView,
+    LessonQuizAPIView,
+    QuizSubmitAPIView,
 )
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -61,6 +63,16 @@ urlpatterns = [
             LessonCompleteAPIView.as_view(),
             name="lesson-complete",
         ),
+    path(
+        "api/lessons/<uuid:lesson_id>/quiz/",
+        LessonQuizAPIView.as_view(),
+        name="lesson-quiz",
+    ),
+    path(
+        "api/quizzes/<uuid:quiz_id>/submit/",
+        QuizSubmitAPIView.as_view(),
+        name="quiz-submit",
+    ),
     path("api/", include(router.urls)),
     path(
         "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
