@@ -27,6 +27,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django.db import transaction
+from drf_yasg.utils import swagger_auto_schema
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
@@ -217,6 +218,8 @@ class LessonQuizAPIView(APIView):
 
 class QuizSubmitAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=QuizSubmitSerializer)
 
     def post(self, request, quiz_id, *args, **kwargs):
         quiz = get_object_or_404(
