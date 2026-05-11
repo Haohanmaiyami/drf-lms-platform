@@ -56,7 +56,7 @@ class LessonSerializer(serializers.ModelSerializer):
         ).exists()
 
 
-class CourseSerializer(serializers.ModelSerializer):
+class CourseDetailSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="public_id", read_only=True)
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     lessons_count = serializers.SerializerMethodField()
@@ -106,6 +106,44 @@ class CourseSerializer(serializers.ModelSerializer):
             url = obj.preview.url
             return request.build_absolute_uri(url) if request else url
         return None
+
+
+class CourseListSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+    lessons_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+    preview_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = (
+            "id",
+            "name",
+            "description",
+            "preview",
+            "preview_url",
+            "owner",
+            "lessons_count",
+            "is_subscribed",
+        )
+
+    def get_lessons_count(self, obj):
+        return obj.lesson_set.count()
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get("request")
+        if not (request and request.user and request.user.is_authenticated):
+            return False
+        return obj.subscriptions.filter(user=request.user).exists()
+
+    def get_preview_url(self, obj):
+        request = self.context.get("request")
+        if obj.preview:
+            url = obj.preview.url
+            return request.build_absolute_uri(url) if request else url
+        return None
+
 
 class QuizAnswerOptionSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="public_id", read_only=True)

@@ -13,9 +13,9 @@ from courses.models import (
     QuizAttempt,
     QuizAttemptAnswer,
 )
-from courses.paginators import DefaultPagination
 from courses.serializers import (
-    CourseSerializer,
+    CourseListSerializer,
+    CourseDetailSerializer,
     LessonSerializer,
     QuizSerializer,
     QuizSubmitSerializer,
@@ -31,9 +31,12 @@ from drf_yasg.utils import swagger_auto_schema
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CourseListSerializer
+        return CourseDetailSerializer
     lookup_field = "public_id"
-    pagination_class = DefaultPagination
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
