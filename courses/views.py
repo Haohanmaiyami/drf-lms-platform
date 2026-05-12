@@ -29,6 +29,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
@@ -149,6 +150,25 @@ class LessonViewSet(ModelViewSet):
 
 class SubscriptionAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["course_id"],
+            properties={
+                "course_id": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Public UUID курса из GET /courses/",
+                ),
+            },
+        ),
+        responses={
+            201: openapi.Response(description="Подписка добавлена"),
+            200: openapi.Response(description="Подписка удалена"),
+            400: openapi.Response(description="course_id is required"),
+            404: openapi.Response(description="Course not found"),
+        },
+    )
 
     def post(self, request, *args, **kwargs):
         user = request.user
