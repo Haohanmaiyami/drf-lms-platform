@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from courses.models import (
     Course,
@@ -33,7 +34,7 @@ class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "my_subscriptions"]:
             return CourseListSerializer
         return CourseDetailSerializer
     lookup_field = "public_id"
@@ -42,9 +43,31 @@ class CourseViewSet(ModelViewSet):
     def get_queryset(self):
         return Course.objects.all()
 
+    @action(detail=False, methods=["get"], url_path="my-subscriptions")
+    def my_subscriptions(self, request):
+        courses = Course.objects.filter(
+            subscriptions__user=request.user
+        ).distinct()
+
+        page = self.paginate_queryset(courses)
+        if page is not None:
+            serializer = CourseListSerializer(
+                page,
+                many=True,
+                context={"request": request},
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CourseListSerializer(
+            courses,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def get_permissions(self):
         # классы прав "по операциям"
-        if self.action in ["list", "retrieve"]:
+        if self.action in ["list", "retrieve", "my_subscriptions"]:
             perms = [IsAuthenticated]
         elif self.action == "create":
             perms = [IsAuthenticated, NotModer]  # модератор не создаёт
@@ -130,15 +153,41 @@ class SubscriptionAPIView(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         course_id = request.data.get("course_id")
+
+        if not course_id:
+            return Response(
+                {"detail": "course_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         course = get_object_or_404(Course, public_id=course_id)
 
-        existing = Subscription.objects.filter(user=user, course=course)
-        if existing.exists():
-            existing.delete()
-            return Response({"message": "подписка удалена"}, status=status.HTTP_200_OK)
+        subscription = Subscription.objects.filter(
+            user=user,
+            course=course,
+        ).first()
+
+        if subscription:
+            subscription.delete()
+
+            return Response(
+                {
+                    "course_id": str(course.public_id),
+                    "is_subscribed": False,
+                    "message": "подписка удалена",
+                },
+                status=status.HTTP_200_OK,
+            )
+
         Subscription.objects.create(user=user, course=course)
+
         return Response(
-            {"message": "подписка добавлена"}, status=status.HTTP_201_CREATED
+            {
+                "course_id": str(course.public_id),
+                "is_subscribed": True,
+                "message": "подписка добавлена",
+            },
+            status=status.HTTP_201_CREATED,
         )
 
 class LessonCompleteAPIView(APIView):
