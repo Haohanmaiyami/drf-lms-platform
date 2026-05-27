@@ -62,6 +62,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     lessons_count = serializers.SerializerMethodField()
     lessons = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
+    finished = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -76,6 +77,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             "lessons_count",
             "lessons",
             "is_subscribed",
+            "finished",
         )
 
     def get_lessons_count(self, obj):
@@ -100,6 +102,24 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             return False
         return obj.subscriptions.filter(user=request.user).exists()
 
+    def get_finished(self, obj):
+        request = self.context.get("request")
+        if not (request and request.user and request.user.is_authenticated):
+            return False
+
+        total_lessons = obj.lesson_set.count()
+
+        if total_lessons == 0:
+            return False
+
+        completed_lessons = LessonProgress.objects.filter(
+            user=request.user,
+            lesson__course=obj,
+            is_completed=True,
+        ).count()
+
+        return completed_lessons == total_lessons
+
     def get_preview_url(self, obj):
         request = self.context.get("request")
         if obj.preview:
@@ -113,6 +133,7 @@ class CourseListSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
     lessons_count = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
+    finished = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -126,6 +147,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             "owner",
             "lessons_count",
             "is_subscribed",
+            "finished",
         )
 
     def get_lessons_count(self, obj):
@@ -136,6 +158,24 @@ class CourseListSerializer(serializers.ModelSerializer):
         if not (request and request.user and request.user.is_authenticated):
             return False
         return obj.subscriptions.filter(user=request.user).exists()
+
+    def get_finished(self, obj):
+        request = self.context.get("request")
+        if not (request and request.user and request.user.is_authenticated):
+            return False
+
+        total_lessons = obj.lesson_set.count()
+
+        if total_lessons == 0:
+            return False
+
+        completed_lessons = LessonProgress.objects.filter(
+            user=request.user,
+            lesson__course=obj,
+            is_completed=True,
+        ).count()
+
+        return completed_lessons == total_lessons
 
     def get_preview_url(self, obj):
         request = self.context.get("request")

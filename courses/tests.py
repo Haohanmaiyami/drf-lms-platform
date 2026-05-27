@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -92,30 +91,45 @@ class SubscriptionTests(APITestCase):
         self.owner = create_user("owner@test.com")
         self.course = create_course(self.owner, "Course B")
 
-    def test_toggle_subscription(self):
+    def test_subscribe_does_not_unsubscribe_on_second_post(self):
         self.client.force_authenticate(self.user)
 
-        # 1) Подписка (добавление)
         resp = self.client.post(
             "/api/courses/subscribe/",
             data={"course_id": str(self.course.public_id)},
         )
-        self.assertIn(resp.status_code, (status.HTTP_201_CREATED, status.HTTP_200_OK))
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
             Subscription.objects.filter(user=self.user, course=self.course).exists()
         )
-        self.assertIn("подписка", resp.data["message"])
 
-        # 2) Повторный пост — отписка
         resp = self.client.post(
             "/api/courses/subscribe/",
             data={"course_id": str(self.course.public_id)},
         )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            Subscription.objects.filter(user=self.user, course=self.course).exists()
+        )
+        self.assertTrue(resp.data["is_subscribed"])
+
+    def test_unsubscribe(self):
+        self.client.force_authenticate(self.user)
+
+        Subscription.objects.create(user=self.user, course=self.course)
+
+        resp = self.client.post(
+            "/api/courses/unsubscribe/",
+            data={"course_id": str(self.course.public_id)},
+        )
+
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertFalse(
             Subscription.objects.filter(user=self.user, course=self.course).exists()
         )
-        self.assertIn("удалена", resp.data["message"])
+        self.assertFalse(resp.data["is_subscribed"])
 
     def test_course_detail_contains_is_subscribed(self):
         self.client.force_authenticate(self.user)

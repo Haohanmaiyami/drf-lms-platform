@@ -1,11 +1,12 @@
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include
 from rest_framework.routers import DefaultRouter
 from courses.views import (
     CourseViewSet,
     LessonViewSet,
     SubscriptionAPIView,
     LessonCompleteAPIView,
+    UnsubscribeAPIView,
     LessonQuizAPIView,
     QuizSubmitAPIView,
 )
@@ -59,10 +60,15 @@ urlpatterns = [
         "api/courses/subscribe/", SubscriptionAPIView.as_view(), name="course-subscribe"
     ),
     path(
-            "api/lessons/<uuid:lesson_id>/complete/",
-            LessonCompleteAPIView.as_view(),
-            name="lesson-complete",
-        ),
+        "api/courses/unsubscribe/",
+        UnsubscribeAPIView.as_view(),
+        name="course-unsubscribe",
+    ),
+    path(
+        "api/lessons/<uuid:lesson_id>/complete/",
+        LessonCompleteAPIView.as_view(),
+        name="lesson-complete",
+    ),
     path(
         "api/lessons/<uuid:lesson_id>/quiz/",
         LessonQuizAPIView.as_view(),

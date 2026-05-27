@@ -164,12 +164,11 @@ class SubscriptionAPIView(APIView):
         ),
         responses={
             201: openapi.Response(description="Подписка добавлена"),
-            200: openapi.Response(description="Подписка удалена"),
+            200: openapi.Response(description="Пользователь уже подписан"),
             400: openapi.Response(description="course_id is required"),
             404: openapi.Response(description="Course not found"),
         },
     )
-
     def post(self, request, *args, **kwargs):
         user = request.user
         course_id = request.data.get("course_id")
@@ -182,24 +181,20 @@ class SubscriptionAPIView(APIView):
 
         course = get_object_or_404(Course, public_id=course_id)
 
-        subscription = Subscription.objects.filter(
+        subscription, created = Subscription.objects.get_or_create(
             user=user,
             course=course,
-        ).first()
+        )
 
-        if subscription:
-            subscription.delete()
-
+        if not created:
             return Response(
                 {
                     "course_id": str(course.public_id),
-                    "is_subscribed": False,
-                    "message": "подписка удалена",
+                    "is_subscribed": True,
+                    "message": "вы уже подписаны на курс",
                 },
                 status=status.HTTP_200_OK,
             )
-
-        Subscription.objects.create(user=user, course=course)
 
         return Response(
             {
@@ -209,6 +204,68 @@ class SubscriptionAPIView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class UnsubscribeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["course_id"],
+            properties={
+                "course_id": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Public UUID курса из GET /courses/",
+                ),
+            },
+        ),
+        responses={
+            200: openapi.Response(description="Подписка удалена"),
+            400: openapi.Response(description="course_id is required"),
+            404: openapi.Response(description="Course not found"),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        if not course_id:
+            return Response(
+                {"detail": "course_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        course = get_object_or_404(Course, public_id=course_id)
+
+        Subscription.objects.filter(
+            user=user,
+            course=course,
+        ).delete()
+
+        return Response(
+            {
+                "course_id": str(course.public_id),
+                "is_subscribed": False,
+                "message": "подписка удалена",
+            },
+            status=status.HTTP_200_OK,
+        )
+
+def is_course_finished_for_user(user, course):
+    total_lessons = course.lesson_set.count()
+
+    if total_lessons == 0:
+        return False
+
+    completed_lessons = LessonProgress.objects.filter(
+        user=user,
+        lesson__course=course,
+        is_completed=True,
+    ).count()
+
+    return completed_lessons == total_lessons
+
 
 class LessonCompleteAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -231,7 +288,12 @@ class LessonCompleteAPIView(APIView):
         return Response(
             {
                 "lesson_id": str(lesson.public_id),
+                "course_id": str(lesson.course.public_id),
                 "is_completed": True,
+                "course_finished": is_course_finished_for_user(
+                    request.user,
+                    lesson.course,
+                ),
                 "message": "урок отмечен как пройденный",
             },
             status=status.HTTP_200_OK,
@@ -253,7 +315,9 @@ class LessonCompleteAPIView(APIView):
         return Response(
             {
                 "lesson_id": str(lesson.public_id),
+                "course_id": str(lesson.course.public_id),
                 "is_completed": False,
+                "course_finished": False,
                 "message": "отметка о прохождении снята",
             },
             status=status.HTTP_200_OK,
