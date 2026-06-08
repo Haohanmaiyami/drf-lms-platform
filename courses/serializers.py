@@ -21,6 +21,7 @@ class LessonSerializer(serializers.ModelSerializer):
         validators=[validate_youtube_url],
     )
     preview_url = serializers.SerializerMethodField()
+    has_quiz = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
@@ -34,6 +35,7 @@ class LessonSerializer(serializers.ModelSerializer):
             "video",
             "owner",
             "is_completed",
+            "has_quiz",
         )
 
     def get_preview_url(self, obj):
@@ -53,6 +55,12 @@ class LessonSerializer(serializers.ModelSerializer):
             user=request.user,
             lesson=obj,
             is_completed=True,
+        ).exists()
+
+    def get_has_quiz(self, obj):
+        return Quiz.objects.filter(
+            lesson=obj,
+            is_active=True,
         ).exists()
 
 
