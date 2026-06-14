@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-
+from django.utils import timezone
 from users.models import Payment
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
@@ -93,5 +93,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     def save(self):
         user = self.validated_data["user"]
         user.set_password(self.validated_data["new_password"])
-        user.save()
+        user.is_active = True
+        user.last_login = timezone.now()
+        user.save(update_fields=["password", "is_active", "last_login"])
         return user
