@@ -29,8 +29,6 @@ services:
   redis:
     restart: unless-stopped
     image: redis:7
-    ports:
-      - "6379:6379"
 
   celery:
     restart: unless-stopped
