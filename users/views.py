@@ -151,3 +151,14 @@ class PasswordResetConfirmView(APIView):
 
 def password_reset_redirect(request):
     return render(request, "reset_password.html")
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        request.user.delete()
+        return Response(
+            {"detail": "Account deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
