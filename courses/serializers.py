@@ -23,6 +23,9 @@ class LessonSerializer(serializers.ModelSerializer):
     preview_url = serializers.SerializerMethodField()
     has_quiz = serializers.SerializerMethodField()
 
+    speaking_enabled = serializers.SerializerMethodField()
+    target_duration_seconds = serializers.SerializerMethodField()
+
     class Meta:
         model = Lesson
         fields = (
@@ -36,6 +39,8 @@ class LessonSerializer(serializers.ModelSerializer):
             "owner",
             "is_completed",
             "has_quiz",
+            "speaking_enabled",
+            "target_duration_seconds",
         )
 
     def get_preview_url(self, obj):
@@ -62,6 +67,28 @@ class LessonSerializer(serializers.ModelSerializer):
             lesson=obj,
             is_active=True,
         ).exists()
+
+    def get_speaking_enabled(self, obj):
+        return (
+            getattr(
+                obj,
+                "speaking_config",
+                None,
+            )
+            is not None
+        )
+
+    def get_target_duration_seconds(self, obj):
+        config = getattr(
+            obj,
+            "speaking_config",
+            None,
+        )
+
+        if config is None:
+            return None
+
+        return config.target_duration_seconds
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
@@ -101,7 +128,11 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         if not has_course_access(request.user, obj):
             return []
 
-        lessons = obj.lesson_set.all()
+        lessons = (
+            obj.lesson_set
+            .select_related("speaking_config")
+            .all()
+        )
         return LessonSerializer(lessons, many=True, context=self.context).data
 
     def get_is_subscribed(self, obj):

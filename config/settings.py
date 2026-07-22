@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "users",
     "drf_yasg",
     "courses",
+    "speaking.apps.SpeakingConfig",
 ]
 
 MIDDLEWARE = [

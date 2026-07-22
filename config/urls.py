@@ -57,6 +57,13 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("users.urls", namespace="users")),
     path(
+        "api/",
+        include(
+            "speaking.urls",
+            namespace="speaking",
+        ),
+    ),
+    path(
         "api/courses/subscribe/", SubscriptionAPIView.as_view(), name="course-subscribe"
     ),
     path(

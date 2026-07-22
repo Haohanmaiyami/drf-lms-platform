@@ -107,19 +107,36 @@ class LessonViewSet(ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
+        if getattr(
+            self,
+            "swagger_fake_view",
+            False,
+        ):
             return Lesson.objects.none()
 
         user = self.request.user
+
         if not user.is_authenticated:
             return Lesson.objects.none()
 
-        if user.groups.filter(name="moderators").exists():
-            return Lesson.objects.all()
+        lessons = Lesson.objects.select_related(
+            "course",
+            "speaking_config",
+        )
 
-        return Lesson.objects.filter(
-            course__subscriptions__user=user
-        ) | Lesson.objects.filter(owner=user)
+        if user.groups.filter(
+            name="moderators",
+        ).exists():
+            return lessons.all()
+
+        return (
+            lessons.filter(
+                course__subscriptions__user=user,
+            )
+            | lessons.filter(
+                owner=user,
+            )
+        ).distinct()
 
     def get_object(self):
         lesson = super().get_object()
