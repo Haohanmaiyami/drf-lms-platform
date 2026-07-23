@@ -44,7 +44,7 @@ class LessonSpeakingAttemptListCreateAPIView(
             lesson,
         ):
             raise PermissionDenied(
-                "Subscribe to access this lesson."
+                "You do not have access to this lesson."
             )
 
         attempts = (

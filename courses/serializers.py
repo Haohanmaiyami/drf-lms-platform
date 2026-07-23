@@ -119,13 +119,13 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         return obj.lesson_set.count()
 
     def get_lessons(self, obj):
-        from courses.permissions import has_course_access
-
         request = self.context.get("request")
-        if not request:
-            return []
 
-        if not has_course_access(request.user, obj):
+        if not (
+                request
+                and request.user
+                and request.user.is_authenticated
+        ):
             return []
 
         lessons = (
@@ -133,7 +133,12 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             .select_related("speaking_config")
             .all()
         )
-        return LessonSerializer(lessons, many=True, context=self.context).data
+
+        return LessonSerializer(
+            lessons,
+            many=True,
+            context=self.context,
+        ).data
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request")

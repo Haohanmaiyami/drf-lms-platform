@@ -5,7 +5,6 @@ from rest_framework.test import APITestCase
 from courses.models import (
     Course,
     Lesson,
-    Subscription,
 )
 from speaking.models import (
     LessonSpeakingConfig,
@@ -51,10 +50,6 @@ class SpeakingDayOneTests(APITestCase):
             ),
         )
 
-        Subscription.objects.create(
-            user=self.student,
-            course=self.course,
-        )
 
         self.config = (
             LessonSpeakingConfig.objects.create(
