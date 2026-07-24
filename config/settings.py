@@ -254,3 +254,30 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://45.12.231.230:8000")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lingloop.org")
 
 PASSWORD_RESET_TIMEOUT = 7200
+
+
+# AWS / Speaking audio
+
+AWS_REGION = os.getenv(
+    "AWS_REGION",
+    "us-east-1",
+)
+
+AWS_S3_SPEAKING_BUCKET = os.getenv(
+    "AWS_S3_SPEAKING_BUCKET",
+    "",
+)
+
+AWS_S3_PRESIGNED_EXPIRES = int(
+    os.getenv(
+        "AWS_S3_PRESIGNED_EXPIRES",
+        "900",
+    )
+)
+
+SPEAKING_MAX_AUDIO_SIZE_BYTES = int(
+    os.getenv(
+        "SPEAKING_MAX_AUDIO_SIZE_BYTES",
+        str(20 * 1024 * 1024),
+    )
+)

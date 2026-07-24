@@ -9,21 +9,80 @@ from speaking.models import (
 class SpeakingAttemptCreateSerializer(
     serializers.Serializer
 ):
-    """
-    Контракт запроса для второго дня,
-    когда подключим S3.
-    """
-
-    content_type = serializers.ChoiceField(
-        choices=[
-            "audio/mp4",
-            "audio/m4a",
-            "audio/x-m4a",
-        ]
+    content_type = (
+        serializers.ChoiceField(
+            choices=[
+                "audio/mp4",
+                "audio/m4a",
+                "audio/x-m4a",
+            ]
+        )
     )
 
-    file_extension = serializers.ChoiceField(
-        choices=["m4a"],
+    file_extension = (
+        serializers.ChoiceField(
+            choices=["m4a"],
+        )
+    )
+
+
+class SpeakingUploadSerializer(
+    serializers.Serializer
+):
+    url = serializers.URLField()
+
+    method = serializers.CharField()
+
+    headers = serializers.DictField(
+        child=serializers.CharField()
+    )
+
+    expires_in = (
+        serializers.IntegerField()
+    )
+
+
+class SpeakingAttemptCreateResponseSerializer(
+    serializers.Serializer
+):
+    id = serializers.UUIDField()
+
+    lesson_id = serializers.UUIDField()
+
+    attempt_number = (
+        serializers.IntegerField()
+    )
+
+    status = serializers.CharField()
+
+    upload = SpeakingUploadSerializer()
+
+
+class SpeakingAttemptAudioSerializer(
+    serializers.Serializer
+):
+    content_type = serializers.CharField()
+
+    size_bytes = serializers.IntegerField()
+
+
+class SpeakingAttemptCompleteResponseSerializer(
+    serializers.Serializer
+):
+    id = serializers.UUIDField()
+
+    attempt_number = (
+        serializers.IntegerField()
+    )
+
+    status = serializers.CharField()
+
+    audio = (
+        SpeakingAttemptAudioSerializer()
+    )
+
+    uploaded_at = (
+        serializers.DateTimeField()
     )
 
 
@@ -32,6 +91,7 @@ class SpeakingFeedbackSerializer(
 ):
     class Meta:
         model = SpeakingFeedback
+
         fields = (
             "overall_score",
             "meaning_score",
@@ -63,10 +123,14 @@ class SpeakingAttemptHistorySerializer(
         read_only=True,
     )
 
-    overall_score = serializers.SerializerMethodField()
+    overall_score = (
+        serializers
+        .SerializerMethodField()
+    )
 
     class Meta:
         model = SpeakingAttempt
+
         fields = (
             "id",
             "lesson_id",
@@ -79,7 +143,10 @@ class SpeakingAttemptHistorySerializer(
             "completed_at",
         )
 
-    def get_overall_score(self, obj):
+    def get_overall_score(
+        self,
+        obj,
+    ):
         feedback = getattr(
             obj,
             "feedback",
@@ -105,12 +172,24 @@ class SpeakingAttemptDetailSerializer(
         read_only=True,
     )
 
-    metrics = serializers.SerializerMethodField()
-    feedback = serializers.SerializerMethodField()
-    error = serializers.SerializerMethodField()
+    metrics = (
+        serializers
+        .SerializerMethodField()
+    )
+
+    feedback = (
+        serializers
+        .SerializerMethodField()
+    )
+
+    error = (
+        serializers
+        .SerializerMethodField()
+    )
 
     class Meta:
         model = SpeakingAttempt
+
         fields = (
             "id",
             "lesson_id",
@@ -125,18 +204,30 @@ class SpeakingAttemptDetailSerializer(
             "completed_at",
         )
 
-    def get_metrics(self, obj):
+    def get_metrics(
+        self,
+        obj,
+    ):
         if obj.duration_seconds is None:
             return None
 
         return {
-            "duration_seconds": obj.duration_seconds,
+            "duration_seconds": (
+                obj.duration_seconds
+            ),
             "word_count": obj.word_count,
-            "words_per_minute": obj.words_per_minute,
-            "filler_word_count": obj.filler_word_count,
+            "words_per_minute": (
+                obj.words_per_minute
+            ),
+            "filler_word_count": (
+                obj.filler_word_count
+            ),
         }
 
-    def get_feedback(self, obj):
+    def get_feedback(
+        self,
+        obj,
+    ):
         feedback = getattr(
             obj,
             "feedback",
@@ -146,12 +237,20 @@ class SpeakingAttemptDetailSerializer(
         if feedback is None:
             return None
 
-        return SpeakingFeedbackSerializer(
-            feedback,
-        ).data
+        return (
+            SpeakingFeedbackSerializer(
+                feedback,
+            ).data
+        )
 
-    def get_error(self, obj):
-        if obj.status != SpeakingAttempt.Status.FAILED:
+    def get_error(
+        self,
+        obj,
+    ):
+        if (
+            obj.status
+            != SpeakingAttempt.Status.FAILED
+        ):
             return None
 
         return {
@@ -161,6 +260,9 @@ class SpeakingAttemptDetailSerializer(
             ),
             "message": (
                 obj.error_message
-                or "Could not process the recording."
+                or (
+                    "Could not process "
+                    "the recording."
+                )
             ),
         }
