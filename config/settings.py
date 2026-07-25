@@ -281,3 +281,30 @@ SPEAKING_MAX_AUDIO_SIZE_BYTES = int(
         str(20 * 1024 * 1024),
     )
 )
+
+
+# AWS / Speaking transcription
+
+AWS_TRANSCRIBE_LANGUAGE_CODE = os.getenv(
+    "AWS_TRANSCRIBE_LANGUAGE_CODE",
+    "en-US",
+)
+
+AWS_TRANSCRIBE_OUTPUT_PREFIX = os.getenv(
+    "AWS_TRANSCRIBE_OUTPUT_PREFIX",
+    "transcriptions",
+)
+
+AWS_TRANSCRIBE_POLL_SECONDS = int(
+    os.getenv(
+        "AWS_TRANSCRIBE_POLL_SECONDS",
+        "5",
+    )
+)
+
+AWS_TRANSCRIBE_MAX_POLLS = int(
+    os.getenv(
+        "AWS_TRANSCRIBE_MAX_POLLS",
+        "120",
+    )
+)

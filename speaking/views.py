@@ -21,6 +21,9 @@ from rest_framework.views import APIView
 
 from courses.models import Lesson
 from speaking.models import SpeakingAttempt
+from speaking.tasks import (
+    process_speaking_attempt,
+)
 from speaking.permissions import (
     has_lesson_access,
 )
@@ -278,11 +281,12 @@ class SpeakingAttemptCompleteUploadAPIView(
         )
 
         try:
-            attempt, _ = (
+            attempt, upload_completed = (
                 complete_attempt_upload(
                     attempt=attempt,
                 )
             )
+
         except UploadNotFoundError as exc:
             raise ValidationError(
                 {
@@ -307,6 +311,14 @@ class SpeakingAttemptCompleteUploadAPIView(
                 AudioStorageUnavailable()
             ) from exc
 
+        if upload_completed:
+            (
+                process_speaking_attempt
+                .delay_on_commit(
+                    attempt.pk
+                )
+            )
+
         response_serializer = (
             SpeakingAttemptCompleteResponseSerializer(
                 {
@@ -314,12 +326,9 @@ class SpeakingAttemptCompleteUploadAPIView(
                         attempt.public_id
                     ),
                     "attempt_number": (
-                        attempt
-                        .attempt_number
+                        attempt.attempt_number
                     ),
-                    "status": (
-                        attempt.status
-                    ),
+                    "status": attempt.status,
                     "audio": {
                         "content_type": (
                             attempt

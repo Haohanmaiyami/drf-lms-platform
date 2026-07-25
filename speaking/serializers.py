@@ -177,6 +177,11 @@ class SpeakingAttemptDetailSerializer(
         .SerializerMethodField()
     )
 
+    comparison = (
+        serializers
+        .SerializerMethodField()
+    )
+
     feedback = (
         serializers
         .SerializerMethodField()
@@ -197,6 +202,7 @@ class SpeakingAttemptDetailSerializer(
             "status",
             "transcript",
             "metrics",
+            "comparison",
             "feedback",
             "error",
             "created_at",
@@ -215,12 +221,66 @@ class SpeakingAttemptDetailSerializer(
             "duration_seconds": (
                 obj.duration_seconds
             ),
-            "word_count": obj.word_count,
+            "word_count": (
+                obj.word_count
+            ),
             "words_per_minute": (
                 obj.words_per_minute
             ),
             "filler_word_count": (
                 obj.filler_word_count
+            ),
+        }
+
+    def get_comparison(
+        self,
+        obj,
+    ):
+        if obj.duration_seconds is None:
+            return None
+
+        previous_attempt = (
+            SpeakingAttempt.objects
+            .filter(
+                user_id=obj.user_id,
+                lesson_id=obj.lesson_id,
+                attempt_number__lt=(
+                    obj.attempt_number
+                ),
+                duration_seconds__isnull=False,
+                words_per_minute__isnull=False,
+                filler_word_count__isnull=False,
+            )
+            .order_by(
+                "-attempt_number"
+            )
+            .first()
+        )
+
+        if previous_attempt is None:
+            return None
+
+        return {
+            "previous_attempt_number": (
+                previous_attempt
+                .attempt_number
+            ),
+            "duration_delta_seconds": round(
+                obj.duration_seconds
+                - previous_attempt
+                .duration_seconds,
+                2,
+            ),
+            "words_per_minute_delta": round(
+                obj.words_per_minute
+                - previous_attempt
+                .words_per_minute,
+                2,
+            ),
+            "filler_word_count_delta": (
+                obj.filler_word_count
+                - previous_attempt
+                .filler_word_count
             ),
         }
 
