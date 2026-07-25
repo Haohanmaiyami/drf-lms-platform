@@ -38,3 +38,4 @@ dump.rdb
 htmlcov/
 celerybeat-schedule*
 .env
+*.m4a
