@@ -10,7 +10,6 @@ from rest_framework.test import APITestCase
 from courses.models import (
     Course,
     Lesson,
-    Subscription,
 )
 from speaking.models import (
     LessonSpeakingConfig,
@@ -98,12 +97,6 @@ class SpeakingDayThreeTests(
             )
         )
 
-        (
-            Subscription.objects.create(
-                user=self.student,
-                course=self.course,
-            )
-        )
 
         self.client.force_authenticate(
             self.student
@@ -403,6 +396,11 @@ class SpeakingDayThreeTests(
 
     @patch(
         "speaking.tasks."
+        "analyze_speaking_attempt."
+        "delay"
+    )
+    @patch(
+        "speaking.tasks."
         "load_transcription_result"
     )
     @patch(
@@ -413,6 +411,7 @@ class SpeakingDayThreeTests(
         self,
         mocked_get_job,
         mocked_load_result,
+        mocked_analyze_delay,
     ):
         attempt = self.create_attempt(
             attempt_status=(
@@ -464,6 +463,9 @@ class SpeakingDayThreeTests(
         self.assertEqual(
             attempt.status,
             SpeakingAttempt.Status.ANALYZING,
+        )
+        mocked_analyze_delay.assert_called_once_with(
+            attempt.pk
         )
 
     # 8. Рассчитываются duration,

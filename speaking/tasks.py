@@ -3,9 +3,16 @@ import logging
 from celery import shared_task
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from speaking.models import (
     SpeakingAttempt,
+    SpeakingFeedback,
+)
+from speaking.services.bedrock import (
+    BedrockInvalidResponse,
+    BedrockServiceError,
+    generate_speaking_feedback,
 )
 from speaking.services.metrics import (
     calculate_speech_metrics,
@@ -93,6 +100,7 @@ def mark_attempt_failed(
     if attempt.status not in {
         SpeakingAttempt.Status.UPLOADED,
         SpeakingAttempt.Status.TRANSCRIBING,
+        SpeakingAttempt.Status.ANALYZING,
     }:
         return
 
@@ -505,7 +513,7 @@ def poll_speaking_transcription(
 
         return "Attempt failed."
 
-    save_transcription_result(
+    result_saved = save_transcription_result(
         attempt_id=attempt_id,
         transcript=(
             transcription_data[
@@ -515,6 +523,202 @@ def poll_speaking_transcription(
         metrics=metrics,
     )
 
+    if result_saved:
+        analyze_speaking_attempt.delay(
+            attempt_id
+        )
+
     return (
         "Transcript and metrics saved."
     )
+
+
+@transaction.atomic
+def get_attempt_for_analysis(
+    attempt_id: int,
+):
+    attempt = (
+        SpeakingAttempt.objects
+        .select_for_update()
+        .filter(pk=attempt_id)
+        .first()
+    )
+
+    if attempt is None:
+        return None
+
+    if (
+        attempt.status
+        != SpeakingAttempt.Status.ANALYZING
+    ):
+        return None
+
+    if (
+        SpeakingFeedback.objects
+        .filter(attempt=attempt)
+        .exists()
+    ):
+        attempt.status = (
+            SpeakingAttempt.Status.COMPLETED
+        )
+
+        if attempt.completed_at is None:
+            attempt.completed_at = (
+                timezone.now()
+            )
+
+        attempt.error_code = ""
+        attempt.error_message = ""
+
+        attempt.save(
+            update_fields=[
+                "status",
+                "completed_at",
+                "error_code",
+                "error_message",
+            ]
+        )
+
+        return None
+
+    return attempt
+
+
+@transaction.atomic
+def save_feedback_result(
+    *,
+    attempt_id: int,
+    feedback_payload,
+) -> bool:
+    attempt = (
+        SpeakingAttempt.objects
+        .select_for_update()
+        .filter(pk=attempt_id)
+        .first()
+    )
+
+    if attempt is None:
+        return False
+
+    if (
+        attempt.status
+        != SpeakingAttempt.Status.ANALYZING
+    ):
+        return False
+
+    _, created = (
+        SpeakingFeedback.objects
+        .get_or_create(
+            attempt=attempt,
+            defaults=(
+                feedback_payload
+                .to_model_defaults()
+            ),
+        )
+    )
+
+    attempt.status = (
+        SpeakingAttempt.Status.COMPLETED
+    )
+    attempt.completed_at = (
+        timezone.now()
+    )
+    attempt.error_code = ""
+    attempt.error_message = ""
+
+    attempt.save(
+        update_fields=[
+            "status",
+            "completed_at",
+            "error_code",
+            "error_message",
+        ]
+    )
+
+    return created
+
+
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=20,
+)
+def analyze_speaking_attempt(
+    self,
+    attempt_id: int,
+):
+    attempt = get_attempt_for_analysis(
+        attempt_id
+    )
+
+    if attempt is None:
+        return "Attempt skipped."
+
+    try:
+        feedback_payload = (
+            generate_speaking_feedback(
+                attempt=attempt,
+            )
+        )
+
+    except BedrockServiceError as exc:
+        logger.exception(
+            "Could not generate feedback "
+            "for attempt %s",
+            attempt_id,
+        )
+
+        if (
+            self.request.retries
+            < self.max_retries
+        ):
+            raise self.retry(
+                exc=exc
+            )
+
+        mark_attempt_failed(
+            attempt_id=attempt_id,
+            error_code=(
+                "analysis_service_failed"
+            ),
+            error_message=(
+                "Could not analyze "
+                "the recording."
+            ),
+        )
+
+        return "Attempt failed."
+
+    except BedrockInvalidResponse:
+        logger.exception(
+            "Invalid Bedrock response "
+            "for attempt %s",
+            attempt_id,
+        )
+
+        mark_attempt_failed(
+            attempt_id=attempt_id,
+            error_code=(
+                "analysis_invalid_response"
+            ),
+            error_message=(
+                "Could not create "
+                "valid speaking feedback."
+            ),
+        )
+
+        return "Attempt failed."
+
+    feedback_created = (
+        save_feedback_result(
+            attempt_id=attempt_id,
+            feedback_payload=(
+                feedback_payload
+            ),
+        )
+    )
+
+    if not feedback_created:
+        return "Feedback already exists."
+
+    return "Speaking feedback saved."

@@ -308,3 +308,32 @@ AWS_TRANSCRIBE_MAX_POLLS = int(
         "120",
     )
 )
+
+
+# AWS / Speaking feedback
+
+AWS_BEDROCK_MODEL_ID = os.getenv(
+    "AWS_BEDROCK_MODEL_ID",
+    "us.amazon.nova-2-lite-v1:0",
+)
+
+AWS_BEDROCK_MAX_TOKENS = int(
+    os.getenv(
+        "AWS_BEDROCK_MAX_TOKENS",
+        "2500",
+    )
+)
+
+AWS_BEDROCK_TEMPERATURE = float(
+    os.getenv(
+        "AWS_BEDROCK_TEMPERATURE",
+        "0",
+    )
+)
+
+AWS_BEDROCK_VALIDATION_RETRIES = int(
+    os.getenv(
+        "AWS_BEDROCK_VALIDATION_RETRIES",
+        "1",
+    )
+)
