@@ -13,7 +13,6 @@ from courses.views import (
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from django.urls import path
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
@@ -88,7 +87,7 @@ urlpatterns = [
     ),
     path("api/", include(router.urls)),
     re_path(
-        r"^swagger(?P<format>\.json|\.yaml)$",
+        r"^swagger\.(?P<format>json|yaml)$",
         schema_view.without_ui(cache_timeout=0),
         name="schema-json",
     ),
