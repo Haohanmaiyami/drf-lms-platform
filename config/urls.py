@@ -16,6 +16,7 @@ from drf_yasg import openapi
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -99,6 +100,11 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("success/", payment_success, name="payment_success"),
     path("cancel/", payment_cancel, name="payment_cancel"),
+    re_path(
+        r"^delete-account/?$",
+        TemplateView.as_view(template_name="account_deletion.html"),
+        name="delete-account",
+    ),
     path("", lambda r: HttpResponse("все ок")),
 ]
 
