@@ -84,6 +84,78 @@ class LessonCRUDTests(APITestCase):
         self.assertIn("video", resp.data)
 
 
+
+# Открытый доступ к материалам LingLoop MVP
+class OpenLessonAccessTests(APITestCase):
+    def setUp(self):
+        self.owner = create_user(
+            "content-owner@test.com"
+        )
+
+        self.student = create_user(
+            "student-no-subscription@test.com"
+        )
+
+        self.course = create_course(
+            self.owner,
+            "Open LingLoop Course",
+        )
+
+        self.lesson = create_lesson(
+            self.owner,
+            self.course,
+            "Open Speaking Lesson",
+        )
+
+    def test_authenticated_user_can_retrieve_lesson_without_subscription(
+        self,
+    ):
+        self.client.force_authenticate(
+            self.student
+        )
+
+        response = self.client.get(
+            f"/api/lessons/"
+            f"{self.lesson.public_id}/"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+    def test_course_detail_contains_lessons_without_subscription(
+        self,
+    ):
+        self.client.force_authenticate(
+            self.student
+        )
+
+        response = self.client.get(
+            f"/api/courses/"
+            f"{self.course.public_id}/"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            len(response.data["lessons"]),
+            1,
+        )
+
+        self.assertEqual(
+            response.data["lessons"][0]["id"],
+            str(self.lesson.public_id),
+        )
+
+        self.assertFalse(
+            response.data["is_subscribed"]
+        )
+
+
 # Подписка
 class SubscriptionTests(APITestCase):
     def setUp(self):

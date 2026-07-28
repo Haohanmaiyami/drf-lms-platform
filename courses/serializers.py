@@ -23,6 +23,9 @@ class LessonSerializer(serializers.ModelSerializer):
     preview_url = serializers.SerializerMethodField()
     has_quiz = serializers.SerializerMethodField()
 
+    speaking_enabled = serializers.SerializerMethodField()
+    target_duration_seconds = serializers.SerializerMethodField()
+
     class Meta:
         model = Lesson
         fields = (
@@ -36,6 +39,8 @@ class LessonSerializer(serializers.ModelSerializer):
             "owner",
             "is_completed",
             "has_quiz",
+            "speaking_enabled",
+            "target_duration_seconds",
         )
 
     def get_preview_url(self, obj):
@@ -62,6 +67,28 @@ class LessonSerializer(serializers.ModelSerializer):
             lesson=obj,
             is_active=True,
         ).exists()
+
+    def get_speaking_enabled(self, obj):
+        return (
+            getattr(
+                obj,
+                "speaking_config",
+                None,
+            )
+            is not None
+        )
+
+    def get_target_duration_seconds(self, obj):
+        config = getattr(
+            obj,
+            "speaking_config",
+            None,
+        )
+
+        if config is None:
+            return None
+
+        return config.target_duration_seconds
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
@@ -92,17 +119,26 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         return obj.lesson_set.count()
 
     def get_lessons(self, obj):
-        from courses.permissions import has_course_access
-
         request = self.context.get("request")
-        if not request:
+
+        if not (
+                request
+                and request.user
+                and request.user.is_authenticated
+        ):
             return []
 
-        if not has_course_access(request.user, obj):
-            return []
+        lessons = (
+            obj.lesson_set
+            .select_related("speaking_config")
+            .all()
+        )
 
-        lessons = obj.lesson_set.all()
-        return LessonSerializer(lessons, many=True, context=self.context).data
+        return LessonSerializer(
+            lessons,
+            many=True,
+            context=self.context,
+        ).data
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request")

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "users",
     "drf_yasg",
     "courses",
+    "speaking.apps.SpeakingConfig",
 ]
 
 MIDDLEWARE = [
@@ -211,6 +212,8 @@ SWAGGER_SETTINGS = {
     "PERSIST_AUTH": True,
 }
 
+SWAGGER_USE_COMPAT_RENDERERS = False
+
 
 
 CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
@@ -253,3 +256,86 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://45.12.231.230:8000")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lingloop.org")
 
 PASSWORD_RESET_TIMEOUT = 7200
+
+
+# AWS / Speaking audio
+
+AWS_REGION = os.getenv(
+    "AWS_REGION",
+    "us-east-1",
+)
+
+AWS_S3_SPEAKING_BUCKET = os.getenv(
+    "AWS_S3_SPEAKING_BUCKET",
+    "",
+)
+
+AWS_S3_PRESIGNED_EXPIRES = int(
+    os.getenv(
+        "AWS_S3_PRESIGNED_EXPIRES",
+        "900",
+    )
+)
+
+SPEAKING_MAX_AUDIO_SIZE_BYTES = int(
+    os.getenv(
+        "SPEAKING_MAX_AUDIO_SIZE_BYTES",
+        str(20 * 1024 * 1024),
+    )
+)
+
+
+# AWS / Speaking transcription
+
+AWS_TRANSCRIBE_LANGUAGE_CODE = os.getenv(
+    "AWS_TRANSCRIBE_LANGUAGE_CODE",
+    "en-US",
+)
+
+AWS_TRANSCRIBE_OUTPUT_PREFIX = os.getenv(
+    "AWS_TRANSCRIBE_OUTPUT_PREFIX",
+    "transcriptions",
+)
+
+AWS_TRANSCRIBE_POLL_SECONDS = int(
+    os.getenv(
+        "AWS_TRANSCRIBE_POLL_SECONDS",
+        "5",
+    )
+)
+
+AWS_TRANSCRIBE_MAX_POLLS = int(
+    os.getenv(
+        "AWS_TRANSCRIBE_MAX_POLLS",
+        "120",
+    )
+)
+
+
+# AWS / Speaking feedback
+
+AWS_BEDROCK_MODEL_ID = os.getenv(
+    "AWS_BEDROCK_MODEL_ID",
+    "us.amazon.nova-2-lite-v1:0",
+)
+
+AWS_BEDROCK_MAX_TOKENS = int(
+    os.getenv(
+        "AWS_BEDROCK_MAX_TOKENS",
+        "2500",
+    )
+)
+
+AWS_BEDROCK_TEMPERATURE = float(
+    os.getenv(
+        "AWS_BEDROCK_TEMPERATURE",
+        "0",
+    )
+)
+
+AWS_BEDROCK_VALIDATION_RETRIES = int(
+    os.getenv(
+        "AWS_BEDROCK_VALIDATION_RETRIES",
+        "1",
+    )
+)

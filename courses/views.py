@@ -107,29 +107,22 @@ class LessonViewSet(ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
+        if getattr(
+                self,
+                "swagger_fake_view",
+                False,
+        ):
             return Lesson.objects.none()
 
         user = self.request.user
+
         if not user.is_authenticated:
             return Lesson.objects.none()
 
-        if user.groups.filter(name="moderators").exists():
-            return Lesson.objects.all()
-
-        return Lesson.objects.filter(
-            course__subscriptions__user=user
-        ) | Lesson.objects.filter(owner=user)
-
-    def get_object(self):
-        lesson = super().get_object()
-
-        if self.action in ["retrieve"] and not has_course_access(
-                self.request.user, lesson.course
-        ):
-            raise PermissionDenied("Subscribe to access this lesson.")
-
-        return lesson
+        return Lesson.objects.select_related(
+            "course",
+            "speaking_config",
+        ).all()
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -274,7 +267,9 @@ class LessonCompleteAPIView(APIView):
         lesson = get_object_or_404(Lesson, public_id=lesson_id)
 
         if not has_course_access(request.user, lesson.course):
-            raise PermissionDenied("Subscribe to access this lesson.")
+            raise PermissionDenied(
+                "You do not have access to this lesson."
+            )
 
         progress, created = LessonProgress.objects.get_or_create(
             user=request.user,
@@ -340,7 +335,9 @@ class LessonQuizAPIView(APIView):
         lesson = get_object_or_404(Lesson, public_id=lesson_id)
 
         if not has_course_access(request.user, lesson.course):
-            raise PermissionDenied("Subscribe to access this lesson.")
+            raise PermissionDenied(
+                "You do not have access to this lesson."
+            )
 
         quiz = get_object_or_404(
             Quiz.objects.prefetch_related("questions__options"),
@@ -365,7 +362,9 @@ class QuizSubmitAPIView(APIView):
         )
 
         if not has_course_access(request.user, quiz.lesson.course):
-            raise PermissionDenied("Subscribe to access this quiz.")
+            raise PermissionDenied(
+                "You do not have access to this quiz."
+            )
 
         serializer = QuizSubmitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

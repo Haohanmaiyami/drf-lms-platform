@@ -20,26 +20,26 @@ from django.conf.urls.static import static
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Snippets API",
+        title="LingLoop API",
         default_version="v1",
-        description="Test description",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
-        license=openapi.License(name="BSD License"),
+        description=(
+            "Backend API for the LingLoop "
+            "speaking-practice application.\n\n"
+            "Main speaking flow:\n"
+            "1. Create a speaking attempt.\n"
+            "2. Upload M4A audio directly to S3.\n"
+            "3. Confirm the upload.\n"
+            "4. Poll attempt detail until completed "
+            "or failed.\n\n"
+            "Authentication: JWT Bearer token."
+        ),
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=(
+        permissions.AllowAny,
+    ),
     authentication_classes=[],
 )
-swagger_settings = {
-    "SECURITY_DEFINITIONS": {
-        "Bearer": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header",
-        }
-    }
-}
 
 
 def payment_success(request):
@@ -56,6 +56,13 @@ router.register(r"lessons", LessonViewSet, basename="lesson")
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("users.urls", namespace="users")),
+    path(
+        "api/",
+        include(
+            "speaking.urls",
+            namespace="speaking",
+        ),
+    ),
     path(
         "api/courses/subscribe/", SubscriptionAPIView.as_view(), name="course-subscribe"
     ),
