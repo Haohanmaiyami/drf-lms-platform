@@ -1,9 +1,41 @@
+# Secrets
 .env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.sqlite3
+
+# Virtual environments
 .venv/
 venv/
+
+# IDE
 .idea/
 .vscode/
-static/
+
+# Tests and coverage
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
+
+# Local media
+*.m4a
 media/
+uploads/
+
+# Celery local files
+celerybeat-schedule*
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Generated static files
+static/

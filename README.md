@@ -1,138 +1,236 @@
-# 📚 Chinese–Russian Dictionary App
+# LingLoop Backend
 
-🚀 **Next-generation Chinese–Russian & Russian–Chinese dictionary platform**
+Backend API for LingLoop — a speaking-fluency application built around:
 
-> Not just a dictionary — a complete modern language-learning system powered by real data and AI.
+```text
+Watch → Retell → Improve
+```
 
----
-
-## 🌍 About the Project
-
-This is a **full-featured dictionary platform (web + mobile)** designed to **replace outdated dictionary apps**.
-
-### 💡 The Idea
-- One app → **everything you need**
-- Covers **beginner to advanced levels**
-- No need to switch between multiple dictionaries
+A learner watches a short lesson, records a retelling, receives a transcript, speech metrics and structured AI feedback, then records another attempt and compares progress.
 
 ---
 
-## 🔥 Key Features
+## MVP access rules
 
-### 📖 Massive Dictionary Database
-- One of the **largest Chinese–Russian databases available**
-- Built on data from a **major dictionary platform**
-- 🧠 **~6,000,000 words and entries**
-
-#### 👉 Covers all levels:
-- Beginner  
-- Intermediate  
-- Advanced  
-- Rare and specialized vocabulary  
-
-#### 👉 Trusted by:
-- Language professionals  
-- Global Chinese & Russian learning community  
+- All authenticated users can access lessons
+- Course subscription is not required
+- Speaking is enabled when a lesson has `LessonSpeakingConfig`
+- Users can access only their own speaking attempts
 
 ---
 
-### ✍️ Stroke Order — Built-in
-- No redirects  
-- No external websites  
-- Works **directly inside the app**  
+## Speaking pipeline
 
-> Unlike other dictionaries, everything stays inside the app
+```text
+created
+→ uploaded
+→ transcribing
+→ analyzing
+→ completed
+```
 
----
+Error status:
 
-### 🤖 AI-Powered Translation
-- Chinese → Russian  
-- Russian → Chinese  
+```text
+failed
+```
 
-#### 💡 Smart pipeline:
-1. Detects words in your text  
-2. Matches them with dictionary entries  
-3. Builds contextual understanding  
-4. Generates **meaningful, context-aware translation**
+Processing flow:
 
-> Not just translation — **real understanding**
-
----
-
-### 🔍 Smart Search
-- Chinese (汉字)  
-- Pinyin  
-- Russian  
-
-⚡ Fast and optimized for real-world usage  
-
----
-
-## 🧠 Why This Project is Different
-
-### Most dictionaries:
-- ❌ Limited database  
-- ❌ No context  
-- ❌ Outdated UX  
-
-### This project:
-- ✅ Massive dataset (~6M entries) used by professionals and a global community  
-- ✅ Based on one of the largest and most trusted dictionary sources  
-- ✅ AI-powered context understanding (not just translation)  
-- ✅ Native mobile experience  
-- ✅ All-in-one solution  
-
-> 👉 Built to replace traditional dictionary apps with a modern, intelligent platform
+```text
+Flutter
+→ Django REST API
+→ direct upload to private Amazon S3
+→ Celery
+→ Amazon Transcribe
+→ Python speech metrics
+→ Amazon Bedrock
+→ structured SpeakingFeedback
+```
 
 ---
 
-## 🛠 Tech Stack
+## Main technologies
 
-### Backend
-- 🐍 Python (core language)  
-- ⚡ FastAPI (modern high-performance framework)  
-- 🐘 PostgreSQL  
-- 🔄 Async architecture  
-- 🤖 AI integration  
-
-### Mobile App
-- 📱 SwiftUI  
-- Native iOS experience  
-
----
-
-## 🚧 Current Status
-
-- 🛠 In active development  
-- ⏳ Mobile release expected in the next couple of months  
-- 🌐 Web version — already available  
+- Python 3.13
+- Django 5
+- Django REST Framework
+- PostgreSQL
+- Redis
+- Celery
+- Docker Compose
+- Amazon S3
+- Amazon Transcribe
+- Amazon Bedrock
+- Pydantic
+- JWT authentication
+- drf-yasg / Swagger
 
 ---
 
-## 🎯 Vision
+## Speaking API
 
-To create:
-- The **ultimate Chinese–Russian dictionary**  
-- A **modern, unified learning tool**  
-- A system that goes beyond simple translation  
+```http
+POST /api/lessons/{lesson_id}/speaking-attempts/
+POST /api/speaking-attempts/{attempt_id}/complete-upload/
+GET  /api/speaking-attempts/{attempt_id}/
+GET  /api/lessons/{lesson_id}/speaking-attempts/
+```
+
+Flutter integration contract:
+
+```text
+docs/flutter-speaking-api.md
+```
+
+Swagger:
+
+```text
+http://127.0.0.1:8000/swagger/
+```
+
+Production Swagger:
+
+```text
+https://api.lingloop.org/swagger/
+```
 
 ---
 
-## 👤 Author
+## Local setup
 
-Developed by a Chinese language specialist with:
-- 📚 Extensive teaching experience  
-- 🌏 Strong background in translation and localization  
-- 🎮 Experience working on projects ranging from regional initiatives to video game localization  
+Create `.env` from the example:
 
-> 👉 Combining linguistics + technology + real-world expertise  
+```bash
+cp .env.example .env
+```
+
+Add the required PostgreSQL, Redis and AWS values.
+
+Build and start:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Check containers:
+
+```bash
+docker compose ps
+```
+
+Apply migrations:
+
+```bash
+docker compose exec web python manage.py migrate
+```
 
 ---
 
-## ⭐ Final Note
+## Checks
 
-> One platform.  
-> Full coverage.  
-> Modern technology.  
+```bash
+docker compose exec web python manage.py check
+```
 
-👉 **Built to replace traditional dictionaries**
+```bash
+docker compose exec web python manage.py makemigrations --check
+```
+
+Run the test suite:
+
+```bash
+docker compose exec web pytest speaking/tests courses/tests.py
+```
+
+---
+
+## Celery
+
+Registered tasks include:
+
+```text
+speaking.tasks.process_speaking_attempt
+speaking.tasks.poll_speaking_transcription
+speaking.tasks.analyze_speaking_attempt
+```
+
+Inspect registered tasks:
+
+```bash
+docker compose exec celery \
+  celery -A config inspect registered
+```
+
+Follow worker logs:
+
+```bash
+docker compose logs -f celery
+```
+
+---
+
+## End-to-end test
+
+Required environment variables:
+
+```text
+BASE_URL
+ACCESS_TOKEN
+LESSON_ID
+AUDIO_FILE
+```
+
+Example:
+
+```bash
+BASE_URL=http://127.0.0.1:8000 \
+ACCESS_TOKEN="JWT_ACCESS_TOKEN" \
+LESSON_ID="LESSON_UUID" \
+AUDIO_FILE="$HOME/Downloads/sample.m4a" \
+./scripts/speaking_e2e.sh
+```
+
+---
+
+## Security
+
+Never commit:
+
+```text
+.env
+AWS credentials
+presigned URLs
+user audio
+transcription output
+```
+
+The S3 bucket must remain private.
+
+Flutter receives only a temporary presigned URL and never receives AWS credentials.
+
+---
+
+## Project structure
+
+```text
+courses/
+speaking/
+    services/
+        attempts.py
+        storage.py
+        uploads.py
+        transcription.py
+        metrics.py
+        feedback_prompt.py
+        feedback_schema.py
+        bedrock.py
+    tests/
+    tasks.py
+users/
+config/
+docs/
+scripts/
+deploy/
+```

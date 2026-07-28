@@ -212,6 +212,8 @@ SWAGGER_SETTINGS = {
     "PERSIST_AUTH": True,
 }
 
+SWAGGER_USE_COMPAT_RENDERERS = False
+
 
 
 CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")

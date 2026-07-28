@@ -31,14 +31,18 @@ class SpeakingUploadSerializer(
 ):
     url = serializers.URLField()
 
-    method = serializers.CharField()
+    method = serializers.ChoiceField(
+        choices=["PUT"],
+    )
 
     headers = serializers.DictField(
         child=serializers.CharField()
     )
 
     expires_in = (
-        serializers.IntegerField()
+        serializers.IntegerField(
+            min_value=1,
+        )
     )
 
 
@@ -50,10 +54,16 @@ class SpeakingAttemptCreateResponseSerializer(
     lesson_id = serializers.UUIDField()
 
     attempt_number = (
-        serializers.IntegerField()
+        serializers.IntegerField(
+            min_value=1,
+        )
     )
 
-    status = serializers.CharField()
+    status = serializers.ChoiceField(
+        choices=(
+            SpeakingAttempt.Status.choices
+        ),
+    )
 
     upload = SpeakingUploadSerializer()
 
@@ -63,7 +73,9 @@ class SpeakingAttemptAudioSerializer(
 ):
     content_type = serializers.CharField()
 
-    size_bytes = serializers.IntegerField()
+    size_bytes = serializers.IntegerField(
+        min_value=1,
+    )
 
 
 class SpeakingAttemptCompleteResponseSerializer(
@@ -72,10 +84,16 @@ class SpeakingAttemptCompleteResponseSerializer(
     id = serializers.UUIDField()
 
     attempt_number = (
-        serializers.IntegerField()
+        serializers.IntegerField(
+            min_value=1,
+        )
     )
 
-    status = serializers.CharField()
+    status = serializers.ChoiceField(
+        choices=(
+            SpeakingAttempt.Status.choices
+        ),
+    )
 
     audio = (
         SpeakingAttemptAudioSerializer()
@@ -157,6 +175,30 @@ class SpeakingAttemptHistorySerializer(
             return None
 
         return feedback.overall_score
+
+
+class SpeakingAttemptHistoryPageSerializer(
+    serializers.Serializer
+):
+    count = serializers.IntegerField(
+        min_value=0,
+    )
+
+    next = serializers.URLField(
+        allow_null=True,
+        required=False,
+    )
+
+    previous = serializers.URLField(
+        allow_null=True,
+        required=False,
+    )
+
+    results = (
+        SpeakingAttemptHistorySerializer(
+            many=True,
+        )
+    )
 
 
 class SpeakingAttemptDetailSerializer(

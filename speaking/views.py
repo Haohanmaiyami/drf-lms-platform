@@ -1,6 +1,7 @@
 from django.shortcuts import (
     get_object_or_404,
 )
+from drf_yasg import openapi
 from drf_yasg.utils import (
     swagger_auto_schema,
 )
@@ -32,6 +33,7 @@ from speaking.serializers import (
     SpeakingAttemptCreateResponseSerializer,
     SpeakingAttemptCreateSerializer,
     SpeakingAttemptDetailSerializer,
+    SpeakingAttemptHistoryPageSerializer,
     SpeakingAttemptHistorySerializer,
 )
 from speaking.services.uploads import (
@@ -40,6 +42,32 @@ from speaking.services.uploads import (
     UploadValidationError,
     complete_attempt_upload,
     prepare_attempt_upload,
+)
+
+
+SPEAKING_SWAGGER_TAGS = [
+    "Speaking",
+]
+
+
+PAGE_PARAMETER = openapi.Parameter(
+    name="page",
+    in_=openapi.IN_QUERY,
+    description="Page number.",
+    type=openapi.TYPE_INTEGER,
+    required=False,
+)
+
+
+PAGE_SIZE_PARAMETER = openapi.Parameter(
+    name="page_size",
+    in_=openapi.IN_QUERY,
+    description=(
+        "Attempts per page. "
+        "Default: 20. Maximum: 100."
+    ),
+    type=openapi.TYPE_INTEGER,
+    required=False,
 )
 
 
@@ -99,6 +127,39 @@ class LessonSpeakingAttemptListCreateAPIView(
 
         return lesson
 
+
+    @swagger_auto_schema(
+        operation_summary=(
+            "List speaking attempts"
+        ),
+        operation_description=(
+            "Returns only the authenticated "
+            "user's attempts for the selected "
+            "lesson. Results are ordered from "
+            "newest to oldest."
+        ),
+        manual_parameters=[
+            PAGE_PARAMETER,
+            PAGE_SIZE_PARAMETER,
+        ],
+        responses={
+            200: (
+                SpeakingAttemptHistoryPageSerializer
+            ),
+            401: openapi.Response(
+                description=(
+                    "Authentication is required."
+                ),
+            ),
+            404: openapi.Response(
+                description=(
+                    "Lesson was not found."
+                ),
+            ),
+        },
+        tags=SPEAKING_SWAGGER_TAGS,
+    )
+
     def get(
         self,
         request,
@@ -154,6 +215,18 @@ class LessonSpeakingAttemptListCreateAPIView(
         )
 
     @swagger_auto_schema(
+        operation_summary=(
+            "Create a speaking attempt"
+        ),
+        operation_description=(
+            "Creates a new SpeakingAttempt and "
+            "returns a temporary presigned S3 "
+            "PUT URL. Upload the raw audio file "
+            "directly to upload.url using exactly "
+            "the method and headers returned in "
+            "the upload object. Do not send the "
+            "JWT Authorization header to S3."
+        ),
         request_body=(
             SpeakingAttemptCreateSerializer
         ),
@@ -161,7 +234,31 @@ class LessonSpeakingAttemptListCreateAPIView(
             201: (
                 SpeakingAttemptCreateResponseSerializer
             ),
+            400: openapi.Response(
+                description=(
+                    "Invalid content type, invalid "
+                    "extension, or speaking is not "
+                    "enabled for this lesson."
+                ),
+            ),
+            401: openapi.Response(
+                description=(
+                    "Authentication is required."
+                ),
+            ),
+            404: openapi.Response(
+                description=(
+                    "Lesson was not found."
+                ),
+            ),
+            503: openapi.Response(
+                description=(
+                    "Audio storage is temporarily "
+                    "unavailable."
+                ),
+            ),
         },
+        tags=SPEAKING_SWAGGER_TAGS,
     )
     def post(
         self,
@@ -261,11 +358,51 @@ class SpeakingAttemptCompleteUploadAPIView(
     ]
 
     @swagger_auto_schema(
+        operation_summary=(
+            "Confirm audio upload"
+        ),
+        operation_description=(
+            "Confirms that Flutter finished the "
+            "direct S3 upload. The backend checks "
+            "the S3 object, validates its size and "
+            "content type, saves upload metadata, "
+            "and starts the asynchronous processing "
+            "pipeline. This endpoint is idempotent."
+        ),
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={},
+        ),
         responses={
             200: (
                 SpeakingAttemptCompleteResponseSerializer
             ),
+            400: openapi.Response(
+                description=(
+                    "The file is missing, empty, "
+                    "too large, or has the wrong "
+                    "content type."
+                ),
+            ),
+            401: openapi.Response(
+                description=(
+                    "Authentication is required."
+                ),
+            ),
+            404: openapi.Response(
+                description=(
+                    "Attempt was not found or belongs "
+                    "to another user."
+                ),
+            ),
+            503: openapi.Response(
+                description=(
+                    "Audio storage is temporarily "
+                    "unavailable."
+                ),
+            ),
         },
+        tags=SPEAKING_SWAGGER_TAGS,
     )
     def post(
         self,
@@ -358,6 +495,35 @@ class SpeakingAttemptDetailAPIView(
     permission_classes = [
         IsAuthenticated,
     ]
+
+    @swagger_auto_schema(
+        operation_summary=(
+            "Get speaking attempt status"
+        ),
+        operation_description=(
+            "Returns the current processing status "
+            "and available result. Flutter should "
+            "poll this endpoint until status becomes "
+            "completed or failed."
+        ),
+        responses={
+            200: (
+                SpeakingAttemptDetailSerializer
+            ),
+            401: openapi.Response(
+                description=(
+                    "Authentication is required."
+                ),
+            ),
+            404: openapi.Response(
+                description=(
+                    "Attempt was not found or belongs "
+                    "to another user."
+                ),
+            ),
+        },
+        tags=SPEAKING_SWAGGER_TAGS,
+    )
 
     def get(
         self,
