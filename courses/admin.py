@@ -20,8 +20,24 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "course", "owner")
-    list_filter = ("owner", "course")
+    list_display = (
+        "id",
+        "name",
+        "level",
+        "course",
+        "owner",
+    )
+
+    list_filter = (
+        "level",
+        "owner",
+        "course",
+    )
+
+    search_fields = (
+        "name",
+        "course__name",
+    )
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):

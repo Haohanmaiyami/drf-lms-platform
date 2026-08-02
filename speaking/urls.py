@@ -4,6 +4,8 @@ from speaking.views import (
     LessonSpeakingAttemptListCreateAPIView,
     SpeakingAttemptCompleteUploadAPIView,
     SpeakingAttemptDetailAPIView,
+    SpeakingHistoryAPIView,
+    SpeakingStatsAPIView,
 )
 
 
@@ -11,6 +13,16 @@ app_name = "speaking"
 
 
 urlpatterns = [
+    path(
+        "me/speaking-history/",
+        SpeakingHistoryAPIView.as_view(),
+        name="speaking-history",
+    ),
+    path(
+        "me/speaking-stats/",
+        SpeakingStatsAPIView.as_view(),
+        name="speaking-stats",
+    ),
     path(
         (
             "lessons/"

@@ -1,3 +1,8 @@
+from django.db.models import (
+    Max,
+    Prefetch,
+    Q,
+)
 from django.shortcuts import (
     get_object_or_404,
 )
@@ -35,6 +40,9 @@ from speaking.serializers import (
     SpeakingAttemptDetailSerializer,
     SpeakingAttemptHistoryPageSerializer,
     SpeakingAttemptHistorySerializer,
+    SpeakingHistoryLessonSerializer,
+    SpeakingHistoryPageSerializer,
+    SpeakingStatsSerializer,
 )
 from speaking.services.uploads import (
     UploadNotFoundError,
@@ -42,6 +50,11 @@ from speaking.services.uploads import (
     UploadValidationError,
     complete_attempt_upload,
     prepare_attempt_upload,
+)
+
+
+from speaking.services.analytics import (
+    build_speaking_stats,
 )
 
 
@@ -94,6 +107,160 @@ class SpeakingAttemptPagination(
     page_size = 20
     page_size_query_param = "page_size"
     max_page_size = 100
+
+class SpeakingHistoryAPIView(
+    APIView
+):
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    @swagger_auto_schema(
+        operation_summary=(
+            "Get all speaking history"
+        ),
+        operation_description=(
+            "Returns the authenticated "
+            "user's attempts grouped by "
+            "lesson."
+        ),
+        manual_parameters=[
+            PAGE_PARAMETER,
+            PAGE_SIZE_PARAMETER,
+        ],
+        responses={
+            200: (
+                SpeakingHistoryPageSerializer
+            ),
+        },
+        tags=SPEAKING_SWAGGER_TAGS,
+    )
+    def get(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        user_attempts = (
+            SpeakingAttempt.objects
+            .filter(
+                user=request.user,
+            )
+            .select_related(
+                "feedback",
+            )
+            .order_by(
+                "-created_at",
+                "-id",
+            )
+        )
+
+        lessons = (
+            Lesson.objects
+            .filter(
+                speaking_attempts__user=(
+                    request.user
+                ),
+            )
+            .annotate(
+                latest_attempt_at=Max(
+                    (
+                        "speaking_attempts"
+                        "__created_at"
+                    ),
+                    filter=Q(
+                        speaking_attempts__user=(
+                            request.user
+                        ),
+                    ),
+                ),
+            )
+            .prefetch_related(
+                Prefetch(
+                    "speaking_attempts",
+                    queryset=user_attempts,
+                    to_attr=(
+                        "user_speaking_attempts"
+                    ),
+                ),
+            )
+            .distinct()
+            .order_by(
+                "-latest_attempt_at",
+                "-id",
+            )
+        )
+
+        paginator = (
+            SpeakingAttemptPagination()
+        )
+
+        page = (
+            paginator.paginate_queryset(
+                lessons,
+                request,
+                view=self,
+            )
+        )
+
+        serializer = (
+            SpeakingHistoryLessonSerializer(
+                page,
+                many=True,
+            )
+        )
+
+        return (
+            paginator
+            .get_paginated_response(
+                serializer.data
+            )
+        )
+
+
+class SpeakingStatsAPIView(
+    APIView
+):
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    @swagger_auto_schema(
+        operation_summary=(
+            "Get speaking statistics"
+        ),
+        operation_description=(
+            "Returns summary, level progress "
+            "and activity for the current week."
+        ),
+        responses={
+            200: SpeakingStatsSerializer,
+        },
+        tags=SPEAKING_SWAGGER_TAGS,
+    )
+    def get(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        data = build_speaking_stats(
+            request.user
+        )
+
+        serializer = (
+            SpeakingStatsSerializer(
+                data=data
+            )
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        return Response(
+            serializer.data
+        )
 
 
 class LessonSpeakingAttemptListCreateAPIView(
