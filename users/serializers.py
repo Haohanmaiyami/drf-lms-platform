@@ -9,11 +9,16 @@ from django.utils.http import urlsafe_base64_decode
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    avatar_url = serializers.SerializerMethodField()
+class UserSerializer(
+    serializers.ModelSerializer
+):
+    avatar_url = (
+        serializers.SerializerMethodField()
+    )
 
     class Meta:
         model = User
+
         fields = (
             "id",
             "email",
@@ -23,13 +28,32 @@ class UserSerializer(serializers.ModelSerializer):
             "city",
             "avatar",
             "avatar_url",
+            "date_joined",
         )
 
-    def get_avatar_url(self, obj):
-        request = self.context.get("request")
+        read_only_fields = (
+            "date_joined",
+        )
+
+    def get_avatar_url(
+        self,
+        obj,
+    ):
+        request = self.context.get(
+            "request"
+        )
+
         if obj.avatar:
             url = obj.avatar.url
-            return request.build_absolute_uri(url) if request else url
+
+            return (
+                request.build_absolute_uri(
+                    url
+                )
+                if request
+                else url
+            )
+
         return None
 
 

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from courses.models import Lesson
 from speaking.models import (
     SpeakingAttempt,
     SpeakingFeedback,
@@ -198,6 +199,170 @@ class SpeakingAttemptHistoryPageSerializer(
         SpeakingAttemptHistorySerializer(
             many=True,
         )
+    )
+
+
+class SpeakingHistoryLessonSerializer(
+    serializers.ModelSerializer
+):
+    id = serializers.UUIDField(
+        source="public_id",
+        read_only=True,
+    )
+
+    title = serializers.CharField(
+        source="name",
+        read_only=True,
+    )
+
+    latest_attempt_at = (
+        serializers.DateTimeField(
+            read_only=True,
+        )
+    )
+
+    attempts = (
+        serializers.SerializerMethodField()
+    )
+
+    class Meta:
+        model = Lesson
+
+        fields = (
+            "id",
+            "title",
+            "level",
+            "latest_attempt_at",
+            "attempts",
+        )
+
+    def get_attempts(
+        self,
+        obj,
+    ):
+        attempts = getattr(
+            obj,
+            "user_speaking_attempts",
+            [],
+        )
+
+        return (
+            SpeakingAttemptHistorySerializer(
+                attempts,
+                many=True,
+            ).data
+        )
+
+
+class SpeakingHistoryPageSerializer(
+    serializers.Serializer
+):
+    count = serializers.IntegerField(
+        min_value=0,
+    )
+
+    next = serializers.URLField(
+        allow_null=True,
+        required=False,
+    )
+
+    previous = serializers.URLField(
+        allow_null=True,
+        required=False,
+    )
+
+    results = (
+        SpeakingHistoryLessonSerializer(
+            many=True,
+        )
+    )
+
+
+class SpeakingStatsSummarySerializer(
+    serializers.Serializer
+):
+    day_streak = serializers.IntegerField(
+        min_value=0,
+    )
+
+    total_minutes = serializers.IntegerField(
+        min_value=0,
+    )
+
+    average_score = serializers.IntegerField(
+        min_value=0,
+        max_value=100,
+    )
+
+    completed_attempts = (
+        serializers.IntegerField(
+            min_value=0,
+        )
+    )
+
+    completed_lessons = (
+        serializers.IntegerField(
+            min_value=0,
+        )
+    )
+
+
+class SpeakingLevelProgressSerializer(
+    serializers.Serializer
+):
+    current_level = serializers.CharField(
+        allow_null=True,
+    )
+
+    next_level = serializers.CharField(
+        allow_null=True,
+    )
+
+    completed_lessons = (
+        serializers.IntegerField(
+            min_value=0,
+        )
+    )
+
+    total_lessons = serializers.IntegerField(
+        min_value=0,
+    )
+
+    percent = serializers.IntegerField(
+        min_value=0,
+        max_value=100,
+    )
+
+
+class SpeakingWeekDaySerializer(
+    serializers.Serializer
+):
+    date = serializers.DateField()
+
+    completed_attempts = (
+        serializers.IntegerField(
+            min_value=0,
+        )
+    )
+
+    minutes = serializers.IntegerField(
+        min_value=0,
+    )
+
+
+class SpeakingStatsSerializer(
+    serializers.Serializer
+):
+    summary = (
+        SpeakingStatsSummarySerializer()
+    )
+
+    level_progress = (
+        SpeakingLevelProgressSerializer()
+    )
+
+    week = SpeakingWeekDaySerializer(
+        many=True,
     )
 
 

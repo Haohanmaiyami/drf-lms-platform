@@ -43,6 +43,20 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
+    class Level(models.TextChoices):
+        BEGINNER = (
+            "beginner",
+            "Beginner",
+        )
+        INTERMEDIATE = (
+            "intermediate",
+            "Intermediate",
+        )
+        UPPER_INTERMEDIATE = (
+            "upper-intermediate",
+            "Upper-Intermediate",
+        )
+
     public_id = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -52,6 +66,15 @@ class Lesson(models.Model):
     name = models.CharField(
         max_length=100, verbose_name="Имя урока", help_text="Укажите название урока"
     )
+
+    level = models.CharField(
+        max_length=20,
+        choices=Level.choices,
+        default=Level.BEGINNER,
+        db_index=True,
+        verbose_name="Уровень урока",
+    )
+
     course = models.ForeignKey(
         Course,
         on_delete=models.SET_NULL,

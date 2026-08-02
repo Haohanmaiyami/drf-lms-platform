@@ -234,7 +234,15 @@ class SpeakingAttempt(models.Model):
                     "created_at",
                 ],
                 name="speak_user_lesson_created_idx",
-            )
+            ),
+            models.Index(
+                fields=[
+                    "user",
+                    "status",
+                    "completed_at",
+                ],
+                name="speak_user_status_done_idx",
+            ),
         ]
 
     def __str__(self):
