@@ -1,5 +1,4 @@
 from decimal import Decimal
-import requests
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView
@@ -17,15 +16,17 @@ from .serializers import (
 )
 from .services.stripe_service import create_price, create_product, create_checkout_session
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import render
 from django.http import HttpResponse
+from .tasks import send_password_reset_email
+from .throttles import (
+    PasswordResetEmailThrottle,
+    PasswordResetIPThrottle,
+)
 
 User = get_user_model()
 
@@ -86,53 +87,36 @@ class PaymentViewSet(ModelViewSet):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [
+        PasswordResetIPThrottle,
+        PasswordResetEmailThrottle,
+    ]
 
-    @swagger_auto_schema(request_body=PasswordResetRequestSerializer)
+    @swagger_auto_schema(
+        request_body=PasswordResetRequestSerializer
+    )
     def post(self, request):
-        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer = PasswordResetRequestSerializer(
+            data=request.data
+        )
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data["email"]
-        user = User.objects.filter(email=email).first()
+        email = (
+            serializer.validated_data["email"]
+            .strip()
+        )
 
-        response_data = {
-            "detail": "If this email exists, a reset link has been sent."
-        }
+        send_password_reset_email.delay(email)
 
-        if user:
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-
-            response_data["uid"] = uid
-            response_data["token"] = token
-
-            reset_link = (
-                f"{settings.FRONTEND_URL}/api/reset-password/"
-                f"?uid={uid}&token={token}"
-            )
-
-            response = requests.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {settings.RESEND_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": settings.DEFAULT_FROM_EMAIL,
-                    "to": [user.email],
-                    "subject": "Password reset",
-                    "html": f"""
-                        <p>Use this link to reset your password:</p>
-                        <p><a href="{reset_link}">{reset_link}</a></p>
-                    """,
-                },
-                timeout=20,
-            )
-
-            response.raise_for_status()
-
-        return Response(response_data, status=status.HTTP_200_OK)
-
+        return Response(
+            {
+                "detail": (
+                    "If this email exists, "
+                    "a reset link has been sent."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
