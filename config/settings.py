@@ -176,18 +176,34 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework_simplejwt.authentication."
+        "JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions."
+        "IsAuthenticated",
+    ),
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination."
+        "PageNumberPagination"
+    ),
     "PAGE_SIZE": 10,
+    "DEFAULT_THROTTLE_RATES": {
+        "password_reset_ip": "10/hour",
+        "password_reset_email": "3/hour",
+    },
 }
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=60
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=7
+    ),
     "UPDATE_LAST_LOGIN": True,
+    "CHECK_REVOKE_TOKEN": True,
 }
 
 
@@ -218,6 +234,23 @@ SWAGGER_USE_COMPAT_RENDERERS = False
 
 CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://redis:6379/0")
+
+CACHE_REDIS_URL = os.getenv(
+    "CACHE_REDIS_URL"
+)
+
+if CACHE_REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": (
+                "django.core.cache.backends.redis."
+                "RedisCache"
+            ),
+            "LOCATION": CACHE_REDIS_URL,
+            "KEY_PREFIX": "lingloop",
+        }
+    }
+
 CELERY_TIMEZONE = 'America/New_York'
 CELERY_ENABLE_UTC = False
 
@@ -232,16 +265,61 @@ EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND",
     "anymail.backends.resend.EmailBackend",
 )
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.yandex.ru")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
-EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "20"))
+
+EMAIL_HOST = os.getenv(
+    "EMAIL_HOST",
+    "smtp.yandex.ru",
+)
+EMAIL_PORT = int(
+    os.getenv("EMAIL_PORT", 587)
+)
+EMAIL_HOST_USER = os.getenv(
+    "EMAIL_HOST_USER"
+)
+EMAIL_HOST_PASSWORD = os.getenv(
+    "EMAIL_HOST_PASSWORD"
+)
+EMAIL_USE_TLS = env_bool(
+    "EMAIL_USE_TLS",
+    True,
+)
+EMAIL_USE_SSL = env_bool(
+    "EMAIL_USE_SSL",
+    False,
+)
+EMAIL_TIMEOUT = int(
+    os.getenv("EMAIL_TIMEOUT", "20")
+)
+
 if EMAIL_USE_TLS and EMAIL_USE_SSL:
-    raise ValueError("Set only one of EMAIL_USE_TLS or EMAIL_USE_SSL")
+    raise ValueError(
+        "Set only one of EMAIL_USE_TLS "
+        "or EMAIL_USE_SSL"
+    )
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "no-reply@lingloop.org",
+)
+
+ANYMAIL = {
+    "RESEND_API_KEY": os.getenv(
+        "RESEND_API_KEY"
+    ),
+}
+
+PASSWORD_RESET_URL = os.getenv(
+    "PASSWORD_RESET_URL",
+    "http://localhost:8000/api/reset-password/",
+)
+
+PASSWORD_RESET_TIMEOUT = int(
+    os.getenv(
+        "PASSWORD_RESET_TIMEOUT",
+        "1800",
+    )
+)
+
 
 ANYMAIL = {
     "RESEND_API_KEY": os.getenv("RESEND_API_KEY"),
@@ -249,13 +327,6 @@ ANYMAIL = {
 
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
-
-
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://45.12.231.230:8000")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lingloop.org")
-
-PASSWORD_RESET_TIMEOUT = 7200
 
 
 # AWS / Speaking audio

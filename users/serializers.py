@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from users.models import Payment
+from django.core.exceptions import (
+    ValidationError as DjangoValidationError,
+)
+from django.utils.encoding import force_str
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
@@ -92,32 +95,72 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
+class PasswordResetConfirmSerializer(
+    serializers.Serializer
+):
     uid = serializers.CharField()
     token = serializers.CharField()
-    new_password = serializers.CharField(write_only=True)
-
-    def validate_new_password(self, value):
-        validate_password(value)
-        return value
+    new_password = serializers.CharField(
+        write_only=True
+    )
 
     def validate(self, attrs):
         try:
-            uid = urlsafe_base64_decode(attrs["uid"]).decode()
-            user = User.objects.get(pk=uid)
-        except Exception:
-            raise serializers.ValidationError("Invalid reset link.")
+            uid = force_str(
+                urlsafe_base64_decode(
+                    attrs["uid"]
+                )
+            )
 
-        if not default_token_generator.check_token(user, attrs["token"]):
-            raise serializers.ValidationError("Invalid or expired token.")
+            user = User.objects.get(
+                pk=uid,
+                is_active=True,
+            )
+
+        except (
+            TypeError,
+            ValueError,
+            OverflowError,
+            UnicodeDecodeError,
+            User.DoesNotExist,
+        ):
+            raise serializers.ValidationError(
+                "Invalid or expired reset link."
+            )
+
+        if not default_token_generator.check_token(
+            user,
+            attrs["token"],
+        ):
+            raise serializers.ValidationError(
+                "Invalid or expired reset link."
+            )
+
+        try:
+            validate_password(
+                attrs["new_password"],
+                user=user,
+            )
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({
+                "new_password": list(
+                    error.messages
+                ),
+            }) from error
 
         attrs["user"] = user
+
         return attrs
 
     def save(self):
         user = self.validated_data["user"]
-        user.set_password(self.validated_data["new_password"])
-        user.is_active = True
-        user.last_login = timezone.now()
-        user.save(update_fields=["password", "is_active", "last_login"])
+
+        user.set_password(
+            self.validated_data["new_password"]
+        )
+
+        user.save(
+            update_fields=["password"]
+        )
+
         return user
